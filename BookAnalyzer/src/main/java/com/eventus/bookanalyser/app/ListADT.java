@@ -1,6 +1,6 @@
-package com.eventus.bookanalyser.model;
+package com.eventus.bookanalyser.app;
 
-import com.eventus.bookanalyser.app.Order;
+import com.eventus.bookanalyser.model.Order;
 
 import java.util.ArrayList;
 import java.util.List;
