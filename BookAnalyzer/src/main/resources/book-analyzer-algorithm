@@ -1,0 +1,31 @@
+
+step#1 : Create bidList
+step#1 : Create asklist
+step#1 : enter input
+step#1 : if input == exit go to last step else go to next step
+step#1 : if orderType == A and side == B then go to step#
+step#1 : add buy order to bidList
+step#1 : sort bidList on price descending
+step#1 : update totalBidQuantity
+step#1 : if targetSize <= totalAskQuantity and currExpenses != previousExpense then print expense else print NA
+step#1 : if orderType = A and side S then go to step#
+step#1 : add sell order to askList
+step#1 : sort askList on price ascending
+step#1 : update totalAskQuantity
+step#1 : if targetSize <= totalBidQuantity then and currentIncome != previousIncome then print income else print NA
+step#1 : if orderType == R and side == B then go to step#
+step#1 : update size for the bid order
+step#1 : if netSize == 0 then delete order from bidList
+step#1 : if targetSize <= totalAskQuantity and currentExpense != previousExpense then print Expense else print NA
+step#1 : if orderType == R and side == S then go to step#
+step#1 : find the ask order and update size
+step#1 : if netSize == 0 then delete order from askList
+step#1 : if targetSize <= totalBidQuantity and currentIncome != previousIncome then print income else print NA
+step#1 : Go to step#3
+step#1 : end program
+
+Operation on the data structure:
+insert
+update
+delete
+sort asc/desc
