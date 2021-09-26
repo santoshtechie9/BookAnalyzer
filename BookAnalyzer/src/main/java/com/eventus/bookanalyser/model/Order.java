@@ -1,7 +1,10 @@
 package com.eventus.bookanalyser.model;
 
+import java.util.Objects;
+
 //use builder patten or factory pattern
-public class Order {
+public class Order  {
+    /* implements Comparable<Order>*/
 
     private final long timestamp;
     private final String orderType;
@@ -60,11 +63,32 @@ public class Order {
                 '}';
     }
 
-    public boolean equals(Object obj) {
-        if (obj instanceof Order) {
-            Order o = (Order) obj;
-            return o.orderId == this.orderId;
-        }
-        return false;
+
+    // Two Orders are equal if their IDs are equal
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return this.orderId.equalsIgnoreCase(order.orderId);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(orderId);
+    }
+
+/*
+    // Compare employees based on their IDs
+    @Override
+    public int compareTo(Order order) {
+        if (this.getPrice() > order.getPrice())
+            return -1;
+        else if (this.price == order.getPrice())
+            return 0;
+        else
+            return 1;
+    }
+*/
+
 }

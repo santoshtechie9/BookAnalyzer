@@ -7,7 +7,7 @@ step#1 : if orderType == A and side == B then go to step#
 step#1 : add buy order to bidList
 step#1 : sort bidList on price descending
 step#1 : update totalBidQuantity
-step#1 : if targetSize <= totalAskQuantity and currExpenses != previousExpense then print expense else print NA
+step#1 : if targetSize >= totalAskQuantity and currExpenses != previousExpense then print expense else print NA
 step#1 : if orderType = A and side S then go to step#
 step#1 : add sell order to askList
 step#1 : sort askList on price ascending
@@ -25,7 +25,10 @@ step#1 : Go to step#3
 step#1 : end program
 
 Operation on the data structure:
-insert
-update
-delete
-sort asc/desc
+insert - add
+update - modify
+delete - size 0
+
+sort:
+askList - asc
+bidList - desc

@@ -13,17 +13,20 @@ public class OrderBook {
     private double totalBidQuantity = 0;
     private double totalAskQuantity = 0;
 
-    private void insertBuyOrder(Order order) {
+    public void insertBuyOrder(Order order) {
         bidList.add(order);
+        this.totalBidQuantity += order.getSize();
     }
 
-    private void insertSellOrder(Order order) {
+    public void insertSellOrder(Order order) {
         askList.add(order);
     }
 
-    private void modifyBuyOrder(Order order) {
-        if (order.getSize() > 0)
+    public void modifyBuyOrder(Order order) {
+        if (order.getSize() > 0) {
             bidList.add(order);
+            this.totalBidQuantity += order.getSize();
+        }
         else if (order.getSize() == 0)
             bidList.remove(order);
         else
@@ -31,7 +34,7 @@ public class OrderBook {
     }
 
 
-    private void modifySellOrder(Order order) {
+    public void modifySellOrder(Order order) {
         if (order.getSize() > 0)
             askList.add(order);
         else if (order.getSize() == 0)
@@ -40,38 +43,19 @@ public class OrderBook {
             throw new IllegalArgumentException();
     }
 
-
-    public Set<Order> getBidList() {
-        return bidList;
-    }
-
-    public void setBidList(Set<Order> bidList) {
-        this.bidList = bidList;
-    }
-
-    public Set<Order> getAskList() {
-        return askList;
-    }
-
-    public void setAskList(Set<Order> askList) {
-        this.askList = askList;
+    private double spread()
+    {
+        return 0.0;
     }
 
     public double getTotalBidQuantity() {
         return totalBidQuantity;
     }
 
-    public void setTotalBidQuantity(double totalBidQuantity) {
-        this.totalBidQuantity = totalBidQuantity;
-    }
-
     public double getTotalAskQuantity() {
         return totalAskQuantity;
     }
 
-    public void setTotalAskQuantity(double totalAskQuantity) {
-        this.totalAskQuantity = totalAskQuantity;
-    }
 }
 
 
