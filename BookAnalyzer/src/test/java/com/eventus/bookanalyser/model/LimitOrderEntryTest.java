@@ -1,6 +1,5 @@
 package com.eventus.bookanalyser.model;
 
-import com.eventus.bookanalyser.datastructure.OrderTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,12 +21,6 @@ class LimitOrderEntryTest {
 
     @Test
     void testEquals() {
-
-        System.out.println(OrderTypes.A.name());
-        System.out.println(OrderTypes.R);
-        System.out.println(OrderTypes.B);
-        System.out.println(OrderTypes.S);
-
         ord2 = new LimitOrderEntry(1632610775490L, "A", "ord1", "S", 8.6, 30);
         Assertions.assertEquals(true, ord1.equals(ord2));
     }

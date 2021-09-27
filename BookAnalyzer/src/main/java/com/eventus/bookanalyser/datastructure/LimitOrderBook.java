@@ -35,8 +35,8 @@ public class LimitOrderBook implements IOrderBook {
     // method for adding order entries to bids or asks
     private void addOrderEntry(LimitOrderEntry limitOrderEntry) {
         //fail fast checks
-        isDuplicateOrder(limitOrderEntry);
-        isValidOrderType(limitOrderEntry);
+        isUniqueOrder(limitOrderEntry);
+        isValidAddOrder(limitOrderEntry);
 
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bidList);
@@ -55,12 +55,12 @@ public class LimitOrderBook implements IOrderBook {
                 limitOrderEntry.getSide().equalsIgnoreCase(OrderTypes.B.name()));
     }
 
-    private void isValidOrderType(LimitOrderEntry limitOrderEntry) {
+    private void isValidAddOrder(LimitOrderEntry limitOrderEntry) {
         if (!limitOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.A.name()))
             throw new InvalidParameterException(String.format("Expected  orderType : A ; received orderType is : %s", limitOrderEntry.getOrderType()));
     }
 
-    private void isDuplicateOrder(LimitOrderEntry limitOrderEntry) {
+    private void isUniqueOrder(LimitOrderEntry limitOrderEntry) {
         if (orderBookMap.get(limitOrderEntry.getOrderId()) != null)
             throw new DuplicateRequestException(String.format("Duplicate orderID %s", orderBookMap.get(limitOrderEntry.getOrderId()).toString()));
     }
