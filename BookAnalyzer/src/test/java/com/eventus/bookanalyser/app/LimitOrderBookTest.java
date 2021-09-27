@@ -1,5 +1,7 @@
 package com.eventus.bookanalyser.app;
 
+import com.eventus.bookanalyser.datastructure.IOrderBook;
+import com.eventus.bookanalyser.datastructure.LimitOrderBook;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,13 +20,13 @@ class LimitOrderBookTest {
     @BeforeEach
     public void before() {
         orderBook = new LimitOrderBook("ZING");
-        buy1 = new LimitOrderEntry(1632610775496L, "A", "buy1", "B", 50, 210);
-        buy2 = new LimitOrderEntry(1632610775496L, "A", "buy2", "B", 100, 200);
-        buy3 = new LimitOrderEntry(1632610775496L, "A", "buy3", "B", 150, 300);
-        LimitOrderEntry buy4 = new LimitOrderEntry(1632610775496L, "A", "buy4", "B", 100, 400);
-        sell1 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 50, 100);
-        sell2 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 100, 200);
-        sell3 = new LimitOrderEntry(1632610775496L, "A", "sell3", "S", 150, 300);
+        buy1 = new LimitOrderEntry(1632610775496L, "A", "buy1", "B", 50.0, 210);
+        buy2 = new LimitOrderEntry(1632610775496L, "A", "buy2", "B", 100.0, 200);
+        buy3 = new LimitOrderEntry(1632610775496L, "A", "buy3", "B", 150.0, 300);
+        LimitOrderEntry buy4 = new LimitOrderEntry(1632610775496L, "A", "buy4", "B", 100.0, 400);
+        sell1 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 50.0, 100);
+        sell2 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 100.0, 200);
+        sell3 = new LimitOrderEntry(1632610775496L, "A", "sell3", "S", 150.0, 300);
         orderBook.addOrder(buy1);
         orderBook.addOrder(buy2);
         orderBook.addOrder(buy3);
@@ -46,33 +48,33 @@ class LimitOrderBookTest {
 
     @Test
     void removeOrderBidList() {
-        buy1 = new LimitOrderEntry(1632610775496L, "R", "buy1", "B", 0, 1004);
+        buy1 = new LimitOrderEntry(1632610775496L, "R", "buy1", "B", 0.0, 1004);
         orderBook.modifyOrder(buy1);
         //((LimitOrderBook) orderBook).getBidList().forEach(x -> System.out.println(x.toString()));
-        Assertions.assertEquals(3, ((LimitOrderBook) orderBook).getBidList().size());
+        Assertions.assertEquals(4, ((LimitOrderBook) orderBook).getBidList().size());
     }
 
     @Test
     void updateOrderBidList() {
-        buy2 = new LimitOrderEntry(1632610775496L, "R", "buy2", "B", 140, 1110);
+        buy2 = new LimitOrderEntry(1632610775496L, "R", "buy2", "B", 140.0, 1110);
         orderBook.modifyOrder(buy2);
         //((LimitOrderBook) orderBook).getBidList().forEach(x -> System.out.println(x.toString()));
         Assertions.assertEquals(4, ((LimitOrderBook) orderBook).getBidList().size());
     }
 
     @Test
-    void calculateExpenses(){
-        double expense = ((LimitOrderBook)orderBook).calculateExpense(250);
+    void calculateExpenses() {
+        double expense = ((LimitOrderBook) orderBook).calculateExpense(250);
         System.out.println("Final Expense : " + expense);
-        Assertions.assertEquals(85000.0,expense);
+        Assertions.assertEquals(37500.0, expense);
 
     }
 
     @Test
-    void calculateIncome(){
-        double income = ((LimitOrderBook)orderBook).calculateIncome(200);
+    void calculateIncome() {
+        double income = ((LimitOrderBook) orderBook).calculateIncome(200);
         System.out.println("Final income : " + income);
-        Assertions.assertEquals(55000.0, income);
+        Assertions.assertEquals(30000.0, income);
 
     }
 

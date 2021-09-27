@@ -1,4 +1,4 @@
-package com.eventus.bookanalyser.app;
+package com.eventus.bookanalyser.datastructure;
 
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 

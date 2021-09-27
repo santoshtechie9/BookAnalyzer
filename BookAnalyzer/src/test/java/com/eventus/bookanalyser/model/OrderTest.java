@@ -9,8 +9,8 @@ class OrderTest {
 
     @BeforeAll
     static void preTest() {
-        ord1 = new LimitOrderEntry(1632610775496L, "A", "ord1", "S", 10, 18.5);
-        ord2 = new LimitOrderEntry(1632610775490L, "A", "ord2", "S", 30, 8.6);
+        ord1 = new LimitOrderEntry(1632610775496L, "A", "ord1", "S", 18.5, 10);
+        ord2 = new LimitOrderEntry(1632610775490L, "A", "ord2", "S", 8.6, 30);
     }
 
     @Test

@@ -5,19 +5,19 @@ import java.util.Objects;
 //use builder patten or factory pattern
 public class LimitOrderEntry {
 
-    private final long timestamp;
+    private final Long timestamp;
     private final String orderType;
     private final String orderId;
-    private final String side;
-    private final long size;
-    private double price;
+    private String side;
+    private Double price;
+    private Integer size;
 
 
-    public LimitOrderEntry(long timestamp, String orderType, String orderId, String side, long size) {
-        this(timestamp, orderType, orderId, side, size, 0);
+    public LimitOrderEntry(Long timestamp, String orderType, String orderId, Integer size) {
+        this(timestamp, orderType, orderId, null, null, size);
     }
 
-    public LimitOrderEntry(long timestamp, String orderType, String orderId, String side, long size, double price) {
+    public LimitOrderEntry(Long timestamp, String orderType, String orderId, String side, Double price, Integer size) {
         this.timestamp = timestamp;
         this.orderType = orderType;
         this.orderId = orderId;
@@ -25,31 +25,6 @@ public class LimitOrderEntry {
         this.price = price;
         this.size = size;
     }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public String getOrderType() {
-        return orderType;
-    }
-
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public String getSide() {
-        return side;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
 
     // Two Orders are equal if their IDs are equal
     @Override
@@ -65,6 +40,30 @@ public class LimitOrderEntry {
         return Objects.hash(orderId);
     }
 
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public String getOrderType() {
+        return orderType;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public String getSide() {
+        return side;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public Integer getSize() {
+        return size;
+    }
+
     @Override
     public String toString() {
         return "LimitOrderEntry{" +
@@ -72,9 +71,8 @@ public class LimitOrderEntry {
                 ", orderType='" + orderType + '\'' +
                 ", orderId='" + orderId + '\'' +
                 ", side='" + side + '\'' +
-                ", size=" + size +
                 ", price=" + price +
+                ", size=" + size +
                 '}';
     }
-
 }
