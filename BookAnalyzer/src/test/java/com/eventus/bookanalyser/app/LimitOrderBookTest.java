@@ -22,9 +22,9 @@ class LimitOrderBookTest {
         buy2 = new LimitOrderEntry(1632610775496L, "A", "buy2", "B", 100, 200);
         buy3 = new LimitOrderEntry(1632610775496L, "A", "buy3", "B", 150, 300);
         LimitOrderEntry buy4 = new LimitOrderEntry(1632610775496L, "A", "buy4", "B", 100, 400);
-        sell1 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 50, 1003);
-        sell2 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 100, 1004);
-        sell3 = new LimitOrderEntry(1632610775496L, "A", "sell3", "S", 150, 1005);
+        sell1 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 50, 100);
+        sell2 = new LimitOrderEntry(1632610775496L, "A", "sell2", "S", 100, 200);
+        sell3 = new LimitOrderEntry(1632610775496L, "A", "sell3", "S", 150, 300);
         orderBook.addOrder(buy1);
         orderBook.addOrder(buy2);
         orderBook.addOrder(buy3);
@@ -62,10 +62,19 @@ class LimitOrderBookTest {
 
     @Test
     void calculateExpenses(){
-        double expense = ((LimitOrderBook)orderBook).getExpense(200);
+        double expense = ((LimitOrderBook)orderBook).calculateExpense(250);
         System.out.println("Final Expense : " + expense);
+        Assertions.assertEquals(85000.0,expense);
+
     }
 
+    @Test
+    void calculateIncome(){
+        double income = ((LimitOrderBook)orderBook).calculateIncome(200);
+        System.out.println("Final income : " + income);
+        Assertions.assertEquals(55000.0, income);
+
+    }
 
 /*
     @Test

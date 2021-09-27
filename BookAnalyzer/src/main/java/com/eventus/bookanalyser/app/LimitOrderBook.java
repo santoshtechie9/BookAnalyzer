@@ -82,17 +82,17 @@ public class LimitOrderBook implements IOrderBook {
         }
     }
 
-    public double getExpense(int targetSize) {
+    public double calculateExpense(int targetSize) {
         double newExpense = 0;
         int netTargetSize = targetSize;
         for (LimitOrderEntry orderEntry : bidList) {
-            if (netTargetSize <= orderEntry.getSize()) {
+            if (netTargetSize > 0 && netTargetSize <= orderEntry.getSize()) {
                 newExpense += (netTargetSize * orderEntry.getPrice());
                 netTargetSize -= netTargetSize;
-            } else if (netTargetSize > orderEntry.getSize()) {
-                newExpense += (netTargetSize * orderEntry.getPrice());
+            } else if (netTargetSize > 0 && netTargetSize > orderEntry.getSize()) {
+                newExpense += (orderEntry.getSize() * orderEntry.getPrice());
                 netTargetSize -= orderEntry.getSize();
-            } else if (netTargetSize <= 0) {
+            } else {
                 break;
             }
             System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
@@ -106,7 +106,18 @@ public class LimitOrderBook implements IOrderBook {
         double newIncome = 0;
         int netTargetSize = targetSize;
         for (LimitOrderEntry orderEntry : askList) {
-
+            if (netTargetSize > 0 && netTargetSize <= orderEntry.getSize()) {
+                newIncome += (netTargetSize * orderEntry.getPrice());
+                netTargetSize -= netTargetSize;
+            } else if (netTargetSize > 0 && netTargetSize > orderEntry.getSize()) {
+                newIncome += (orderEntry.getSize() * orderEntry.getPrice());
+                netTargetSize -= orderEntry.getSize();
+            } else {
+                break;
+            }
+            System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
+            System.out.println(String.format("netTargetSize: %d", netTargetSize));
+            System.out.println(String.format("Expense: %f", newIncome));
         }
         return newIncome;
     }
