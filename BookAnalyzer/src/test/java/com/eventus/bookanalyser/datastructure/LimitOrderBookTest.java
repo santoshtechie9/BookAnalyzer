@@ -1,6 +1,5 @@
-package com.eventus.bookanalyser.app;
+package com.eventus.bookanalyser.datastructure;
 
-import com.eventus.bookanalyser.datastructure.LimitOrderBook;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 import com.sun.jdi.request.DuplicateRequestException;
 import org.junit.jupiter.api.Assertions;
@@ -8,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class LimitOrderBookTest {
+
 
     LimitOrderBook orderBook;
     LimitOrderEntry buy1;
@@ -129,7 +129,7 @@ class LimitOrderBookTest {
     }
 
     @Test
-    public void duplicateBidTest(){
+    public void duplicateBidTest() {
         orderBook.addOrder(buy1);
         orderBook.addOrder(buy2);
         orderBook.addOrder(buy3);
@@ -141,7 +141,7 @@ class LimitOrderBookTest {
     }
 
     @Test
-    public void duplicateAskTest(){
+    public void duplicateAskTest() {
         orderBook.addOrder(sell1);
         orderBook.addOrder(sell2);
         orderBook.addOrder(sell3);
@@ -152,7 +152,6 @@ class LimitOrderBookTest {
         });
 
     }
-
 
 
 }

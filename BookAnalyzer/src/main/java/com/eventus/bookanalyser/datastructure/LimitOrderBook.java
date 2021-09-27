@@ -35,19 +35,34 @@ public class LimitOrderBook implements IOrderBook {
     // method for adding order entries to bids or asks
     private void addOrderEntry(LimitOrderEntry limitOrderEntry) {
         //fail fast checks
-        if (orderBookMap.get(limitOrderEntry.getOrderId()) != null)
-            throw new DuplicateRequestException(String.format("Duplicate orderID %s", orderBookMap.get(limitOrderEntry.getOrderId()).toString()));
-        if (!limitOrderEntry.getOrderType().equalsIgnoreCase("A"))
-            throw new InvalidParameterException(String.format("Expected  orderType : A ; received orderType is : %s", limitOrderEntry.getOrderType()));
+        isDuplicateOrder(limitOrderEntry);
+        isValidOrderType(limitOrderEntry);
 
-        //validate limitOrderEntry
-        if (limitOrderEntry.getOrderType().equalsIgnoreCase("A") &&
-                limitOrderEntry.getSide().equalsIgnoreCase("B")) {
+        if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bidList);
-        } else if (limitOrderEntry.getOrderType().equalsIgnoreCase("A") &&
-                limitOrderEntry.getSide().equalsIgnoreCase("S")) {
+        } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, askList);
         }
+    }
+
+    private boolean isAskOrder(LimitOrderEntry limitOrderEntry) {
+        return (limitOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.A.name()) &&
+                limitOrderEntry.getSide().equalsIgnoreCase(OrderTypes.S.name()));
+    }
+
+    private boolean isBidOrder(LimitOrderEntry limitOrderEntry) {
+        return (limitOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.A.name()) &&
+                limitOrderEntry.getSide().equalsIgnoreCase(OrderTypes.B.name()));
+    }
+
+    private void isValidOrderType(LimitOrderEntry limitOrderEntry) {
+        if (!limitOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.A.name()))
+            throw new InvalidParameterException(String.format("Expected  orderType : A ; received orderType is : %s", limitOrderEntry.getOrderType()));
+    }
+
+    private void isDuplicateOrder(LimitOrderEntry limitOrderEntry) {
+        if (orderBookMap.get(limitOrderEntry.getOrderId()) != null)
+            throw new DuplicateRequestException(String.format("Duplicate orderID %s", orderBookMap.get(limitOrderEntry.getOrderId()).toString()));
     }
 
     private void addOrderToList(LimitOrderEntry limitOrderEntry, Set<LimitOrderEntry> orderList) {
@@ -58,11 +73,10 @@ public class LimitOrderBook implements IOrderBook {
     @Override
     public void modifyOrder(LimitOrderEntry newOrderEntry) {
         //fail fast checks
-        if (!newOrderEntry.getOrderType().equalsIgnoreCase("R"))
-            throw new InvalidParameterException(String.format("Expected orderType : R ; received orderType is : %s", newOrderEntry.getOrderType()));
+        isValidRemoveOrder(newOrderEntry);
 
         LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
-        if (existingEntry != null && existingEntry.getSide().equalsIgnoreCase("B")) {
+        if (isExistingOrder(newOrderEntry) && isBuyOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 bidList.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
@@ -72,7 +86,7 @@ public class LimitOrderBook implements IOrderBook {
                 //bidList.add(existingEntry);
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-        } else if (existingEntry != null && existingEntry.getSide().equalsIgnoreCase("S")) {
+        } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 askList.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
@@ -83,6 +97,25 @@ public class LimitOrderBook implements IOrderBook {
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
         }
+    }
+
+    private boolean isSellOrder(LimitOrderEntry newOrderEntry) {
+        LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
+        return existingEntry.getSide().equalsIgnoreCase(OrderTypes.S.name());
+    }
+
+    private boolean isBuyOrder(LimitOrderEntry newOrderEntry) {
+        LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
+        return existingEntry.getSide().equalsIgnoreCase(OrderTypes.B.name());
+    }
+
+    private boolean isExistingOrder(LimitOrderEntry newOrderEntry) {
+        return orderBookMap.get(newOrderEntry.getOrderId()) != null;
+    }
+
+    private void isValidRemoveOrder(LimitOrderEntry newOrderEntry) {
+        if (!newOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.R.name()))
+            throw new InvalidParameterException(String.format("Expected orderType : R ; received orderType is : %s", newOrderEntry.getOrderType()));
     }
 
     // calculate the expenses
@@ -100,9 +133,9 @@ public class LimitOrderBook implements IOrderBook {
                 } else {
                     break;
                 }
-                System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
-                System.out.println(String.format("tempTargetSize: %d", tempTargetSize));
-                System.out.println(String.format("Expense: %f", newExpense));
+                //System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
+                //System.out.println(String.format("tempTargetSize: %d", tempTargetSize));
+                //System.out.println(String.format("Expense: %f", newExpense));
             }
         } else
             System.out.println("No Bids submitted yet!!!");
@@ -123,9 +156,9 @@ public class LimitOrderBook implements IOrderBook {
             } else {
                 break;
             }
-            System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
-            System.out.println(String.format("netTargetSize: %d", tempTargetSize));
-            System.out.println(String.format("Expense: %f", newIncome));
+            //System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
+            //System.out.println(String.format("netTargetSize: %d", tempTargetSize));
+            //System.out.println(String.format("Expense: %f", newIncome));
         }
         return newIncome;
     }
