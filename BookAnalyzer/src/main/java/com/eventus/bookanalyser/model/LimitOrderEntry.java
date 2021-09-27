@@ -8,8 +8,8 @@ public class LimitOrderEntry {
     private final Long timestamp;
     private final String orderType;
     private final String orderId;
-    private String side;
-    private Double price;
+    private final String side;
+    private final Double price;
     private Integer size;
 
 
@@ -62,6 +62,10 @@ public class LimitOrderEntry {
 
     public Integer getSize() {
         return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
     }
 
     @Override

@@ -3,7 +3,9 @@ package com.eventus.bookanalyser.datastructure;
 import com.eventus.bookanalyser.comparator.AskComparator;
 import com.eventus.bookanalyser.comparator.BidComparator;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
+import com.sun.jdi.request.DuplicateRequestException;
 
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -11,7 +13,7 @@ import java.util.TreeSet;
 
 public class LimitOrderBook implements IOrderBook {
 
-    // instrument id the order book belongs to.
+    // instrument id to which the order book belongs to.
     private final String instrument;
     private final Set<LimitOrderEntry> bidList;
     private final Set<LimitOrderEntry> askList;
@@ -32,6 +34,12 @@ public class LimitOrderBook implements IOrderBook {
 
     // method for adding order entries to bids or asks
     private void addOrderEntry(LimitOrderEntry limitOrderEntry) {
+        //fail fast checks
+        if (orderBookMap.get(limitOrderEntry.getOrderId()) != null)
+            throw new DuplicateRequestException(String.format("Duplicate orderID %s", orderBookMap.get(limitOrderEntry.getOrderId()).toString()));
+        if (!limitOrderEntry.getOrderType().equalsIgnoreCase("A"))
+            throw new InvalidParameterException(String.format("Expected  orderType : A ; received orderType is : %s", limitOrderEntry.getOrderType()));
+
         //validate limitOrderEntry
         if (limitOrderEntry.getOrderType().equalsIgnoreCase("A") &&
                 limitOrderEntry.getSide().equalsIgnoreCase("B")) {
@@ -48,40 +56,31 @@ public class LimitOrderBook implements IOrderBook {
     }
 
     @Override
-    public void modifyOrder(LimitOrderEntry limitOrderEntry) {
-        if (limitOrderEntry.getOrderType().equalsIgnoreCase("R") &&
-                limitOrderEntry.getSide().equalsIgnoreCase("B")) {
-            modifyOrderEntry(limitOrderEntry, bidList, orderBookMap);
-        } else if (limitOrderEntry.getOrderType().equalsIgnoreCase("R") &&
-                limitOrderEntry.getSide().equalsIgnoreCase("S")) {
-            System.out.println("inside asks");
-            modifyOrderEntry(limitOrderEntry, askList, orderBookMap);
-        }
-    }
+    public void modifyOrder(LimitOrderEntry newOrderEntry) {
+        //fail fast checks
+        if (!newOrderEntry.getOrderType().equalsIgnoreCase("R"))
+            throw new InvalidParameterException(String.format("Expected orderType : R ; received orderType is : %s", newOrderEntry.getOrderType()));
 
-    // Update or delete order entry from bidList or askList
-    private void modifyOrderEntry(LimitOrderEntry limitOrderEntry, Set<LimitOrderEntry> orderList,
-                                  Map<String, LimitOrderEntry> orderBookMap) {
-        LimitOrderEntry existingEntry = orderBookMap.get(limitOrderEntry.getOrderId());
-        if (limitOrderEntry.getSize() == 0) {
-            System.out.println(String.format("remove orderID: %s, size: %d", limitOrderEntry.getOrderId(), limitOrderEntry.getSize()));
-            if (!orderList.isEmpty() && existingEntry != null) {
-                System.out.println("Existing Order : " + existingEntry);
-                System.out.println("New Order : " + limitOrderEntry);
-                orderList.remove(existingEntry);
+        LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
+        if (existingEntry != null && existingEntry.getSide().equalsIgnoreCase("B")) {
+            if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
+                bidList.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
-                throw new IllegalStateException("Order not found in the OrderBook!");
+                existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
+                //bidList.remove(existingEntry);
+                //bidList.add(existingEntry);
+                orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-        } else {
-            System.out.println(String.format("modify orderId %s, size: %d", limitOrderEntry.getOrderId(), limitOrderEntry.getSize()));
-            if (!orderList.isEmpty() && existingEntry != null) {
-                orderList.remove(existingEntry);
+        } else if (existingEntry != null && existingEntry.getSide().equalsIgnoreCase("S")) {
+            if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
+                askList.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
-                orderList.add(limitOrderEntry);
-                orderBookMap.put(limitOrderEntry.getOrderId(), limitOrderEntry);
             } else {
-                throw new IllegalStateException("Order not found in the OrderBook!");
+                existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
+                //askList.remove(existingEntry);
+                //askList.add(existingEntry);
+                orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
         }
     }
@@ -90,20 +89,23 @@ public class LimitOrderBook implements IOrderBook {
     public double calculateExpense(int targetSize) {
         double newExpense = 0;
         int tempTargetSize = targetSize;
-        for (LimitOrderEntry orderEntry : bidList) {
-            if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                newExpense += (tempTargetSize * orderEntry.getPrice());
-                tempTargetSize -= tempTargetSize;
-            } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                newExpense += (orderEntry.getSize() * orderEntry.getPrice());
-                tempTargetSize -= orderEntry.getSize();
-            } else {
-                break;
+        if (!bidList.isEmpty()) {
+            for (LimitOrderEntry orderEntry : bidList) {
+                if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
+                    newExpense += (tempTargetSize * orderEntry.getPrice());
+                    tempTargetSize -= tempTargetSize;
+                } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
+                    newExpense += (orderEntry.getSize() * orderEntry.getPrice());
+                    tempTargetSize = tempTargetSize - orderEntry.getSize();
+                } else {
+                    break;
+                }
+                System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
+                System.out.println(String.format("tempTargetSize: %d", tempTargetSize));
+                System.out.println(String.format("Expense: %f", newExpense));
             }
-            System.out.println(String.format("orderId: %s, orderSize: %d, price: %f", orderEntry.getOrderId(), orderEntry.getSize(), orderEntry.getPrice()));
-            System.out.println(String.format("netTargetSize: %d", tempTargetSize));
-            System.out.println(String.format("Expense: %f", newExpense));
-        }
+        } else
+            System.out.println("No Bids submitted yet!!!");
         return newExpense;
     }
 
@@ -128,20 +130,32 @@ public class LimitOrderBook implements IOrderBook {
         return newIncome;
     }
 
-    public String getInstrument() {
-        return instrument;
+    //utility methods are provided for better encapsulation
+    public void printBidList() {
+        System.out.println("Printing Bids");
+        bidList.forEach(x -> System.out.println(x.toString()));
     }
 
-    public Set<LimitOrderEntry> getBidList() {
-        return bidList;
-    }
-
-    public Set<LimitOrderEntry> getAskList() {
-        return askList;
+    public void printAskList() {
+        System.out.println("Printing Asks:");
+        askList.forEach(x -> System.out.println(x.toString()));
     }
 
     public Map<String, LimitOrderEntry> getOrderBookMap() {
         return orderBookMap;
     }
+
+    public int getTotalBidSize() {
+        return bidList.size();
+    }
+
+    public int getTotalAskSize() {
+        return askList.size();
+    }
+
+    public String getInstrument() {
+        return instrument;
+    }
+
 
 }
