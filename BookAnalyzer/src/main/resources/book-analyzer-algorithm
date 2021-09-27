@@ -1,34 +1,34 @@
 
 step#1 : Create bidList
-step#1 : Create asklist
-step#1 : enter input
-step#1 : if input == exit go to last step else go to next step
-step#1 : if orderType == A and side == B then go to step#
-step#1 : add buy order to bidList
-step#1 : sort bidList on price descending
-step#1 : update totalBidQuantity
-step#1 : if targetSize >= totalAskQuantity and currExpenses != previousExpense then print expense else print NA
-step#1 : if orderType = A and side S then go to step#
-step#1 : add sell order to askList
-step#1 : sort askList on price ascending
-step#1 : update totalAskQuantity
-step#1 : if targetSize <= totalBidQuantity then and currentIncome != previousIncome then print income else print NA
-step#1 : if orderType == R and side == B then go to step#
-step#1 : update size for the bid order
-step#1 : if netSize == 0 then delete order from bidList
-step#1 : if targetSize <= totalAskQuantity and currentExpense != previousExpense then print Expense else print NA
-step#1 : if orderType == R and side == S then go to step#
-step#1 : find the ask order and update size
-step#1 : if netSize == 0 then delete order from askList
-step#1 : if targetSize <= totalBidQuantity and currentIncome != previousIncome then print income else print NA
-step#1 : Go to step#3
-step#1 : end program
+step#2 : Create asklist
+step#3 : enter input
+step#4 : if input == exit go to last step else go to next step
+step#5 : if orderType == A and side == B then go to step#
+step#6 : add buy limitOrderEntry to bidList
+step#7 : sort bidList on price descending
+step#8 : update totalBidQuantity
+step#9 : if targetSize >= totalAskQuantity and currExpenses != previousExpense then print expense else print NA
+step#10 : if orderType = A and side S then go to step#
+step#11 : add sell limitOrderEntry to askList
+step#12 : sort askList on price ascending
+step#13 : update totalAskQuantity
+step#14 : if targetSize <= totalBidQuantity then and currentIncome != previousIncome then print income else print NA
+step#15 : if orderType == R and side == B then go to step#
+step#16 : update size for the bid limitOrderEntry
+step#17 : if netSize == 0 then delete limitOrderEntry from bidList
+step#18 : if targetSize <= totalAskQuantity and currentExpense != previousExpense then print Expense else print NA
+step#19 : if orderType == R and side == S then go to step#
+step#20 : find the ask limitOrderEntry and update size
+step#21 : if netSize == 0 then delete limitOrderEntry from askList
+step#22 : if targetSize <= totalBidQuantity and currentIncome != previousIncome then print income else print NA
+step#23 : Go to step#3
+step#24 : end program
 
 Operation on the data structure:
 insert - add
 update - modify
-delete - size 0
+delete - remove when orderSize is zero
 
-sort:
+sort (Optional):
 askList - asc
 bidList - desc

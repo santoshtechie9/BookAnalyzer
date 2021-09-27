@@ -4,13 +4,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class OrderTest {
-    private static Order ord1;
-    private static Order ord2;
+    private static LimitOrderEntry ord1;
+    private static LimitOrderEntry ord2;
 
     @BeforeAll
     static void preTest() {
-        ord1 = new Order(1632610775496L, "A", "ord1", "S", 10, 18.5);
-        ord2 = new Order(1632610775490L, "A", "ord2", "S", 30, 8.6);
+        ord1 = new LimitOrderEntry(1632610775496L, "A", "ord1", "S", 10, 18.5);
+        ord2 = new LimitOrderEntry(1632610775490L, "A", "ord2", "S", 30, 8.6);
     }
 
     @Test

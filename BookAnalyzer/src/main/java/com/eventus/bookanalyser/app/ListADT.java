@@ -1,23 +1,23 @@
 package com.eventus.bookanalyser.app;
 
-import com.eventus.bookanalyser.model.Order;
+import com.eventus.bookanalyser.model.LimitOrderEntry;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ListADT {
 
-    private List<Order> list = new ArrayList<>();
+    private List<LimitOrderEntry> list = new ArrayList<>();
 
-    public abstract void insert(Order order);
+    public abstract void insert(LimitOrderEntry limitOrderEntry);
 
-    public abstract void delete(Order order);
+    public abstract void delete(LimitOrderEntry limitOrderEntry);
 
-    public abstract void modify(Order order);
+    public abstract void modify(LimitOrderEntry limitOrderEntry);
 
     public abstract void sort();
 
-    public List<Order> getList() {
+    public List<LimitOrderEntry> getList() {
         return this.list;
     }
 }
