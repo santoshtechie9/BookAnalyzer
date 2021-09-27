@@ -30,7 +30,6 @@ class LimitOrderEntryTest {
         ord2 = new LimitOrderEntry(1632610775490L, "A", "ord1", "S", 8.6, 30);
         System.out.println("ord1 : " + ord1.hashCode());
         System.out.println("ord2 : " + ord2.hashCode());
-
         Assertions.assertEquals(true, ord1.hashCode() == ord2.hashCode());
     }
 
