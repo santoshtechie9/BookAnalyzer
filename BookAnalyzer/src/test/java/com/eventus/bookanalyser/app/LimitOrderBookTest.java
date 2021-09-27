@@ -41,7 +41,7 @@ class LimitOrderBookTest {
         orderBook.addOrder(buy3);
         orderBook = (LimitOrderBook) orderBook;
         //((LimitOrderBook) orderBook).getBidList().forEach(x -> System.out.println(x.toString()));
-        Assertions.assertEquals(3, ((LimitOrderBook) orderBook).getBidList().size());
+        Assertions.assertEquals(4, ((LimitOrderBook) orderBook).getBidList().size());
     }
 
     @Test
@@ -49,7 +49,7 @@ class LimitOrderBookTest {
         buy1 = new LimitOrderEntry(1632610775496L, "R", "buy1", "B", 0, 1004);
         orderBook.modifyOrder(buy1);
         //((LimitOrderBook) orderBook).getBidList().forEach(x -> System.out.println(x.toString()));
-        Assertions.assertEquals(2, ((LimitOrderBook) orderBook).getBidList().size());
+        Assertions.assertEquals(3, ((LimitOrderBook) orderBook).getBidList().size());
     }
 
     @Test
@@ -57,7 +57,7 @@ class LimitOrderBookTest {
         buy2 = new LimitOrderEntry(1632610775496L, "R", "buy2", "B", 140, 1110);
         orderBook.modifyOrder(buy2);
         //((LimitOrderBook) orderBook).getBidList().forEach(x -> System.out.println(x.toString()));
-        Assertions.assertEquals(3, ((LimitOrderBook) orderBook).getBidList().size());
+        Assertions.assertEquals(4, ((LimitOrderBook) orderBook).getBidList().size());
     }
 
     @Test
