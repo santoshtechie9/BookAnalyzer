@@ -4,10 +4,7 @@ import com.eventus.bookanalyser.comparator.AskComparator;
 import com.eventus.bookanalyser.comparator.BidComparator;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class LimitOrderBook implements IOrderBook {
 
@@ -120,10 +117,6 @@ public class LimitOrderBook implements IOrderBook {
             System.out.println(String.format("Expense: %f", newIncome));
         }
         return newIncome;
-    }
-
-    @Override
-    public void getSpread() {
     }
 
     public String getInstrument() {

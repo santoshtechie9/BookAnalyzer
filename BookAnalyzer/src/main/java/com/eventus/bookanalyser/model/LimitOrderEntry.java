@@ -65,19 +65,6 @@ public class LimitOrderEntry {
         return Objects.hash(orderId);
     }
 
-/*
-    // Compare employees based on their IDs
-    @Override
-    public int compareTo(Order order) {
-        if (this.getPrice() > order.getPrice())
-            return -1;
-        else if (this.price == order.getPrice())
-            return 0;
-        else
-            return 1;
-    }
-*/
-
     @Override
     public String toString() {
         return "LimitOrderEntry{" +
@@ -89,5 +76,5 @@ public class LimitOrderEntry {
                 ", price=" + price +
                 '}';
     }
-    
+
 }

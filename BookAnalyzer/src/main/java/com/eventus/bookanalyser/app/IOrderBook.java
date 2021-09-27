@@ -8,6 +8,4 @@ public interface IOrderBook {
 
     public void modifyOrder(LimitOrderEntry limitOrderEntry);
 
-    public void getSpread();
-
 }
