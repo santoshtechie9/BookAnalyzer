@@ -18,7 +18,6 @@ public class BookAnalyzer {
 /*
         String dataLog = in.nextLine();
         if (dataLog.isEmpty() || dataLog.isBlank()) {
-
             throw new IllegalArgumentException();
         }
 */
