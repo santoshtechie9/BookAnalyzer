@@ -2,7 +2,6 @@ package com.eventus.bookanalyser.test;
 
 import com.eventus.bookanalyser.comparator.AskComparator;
 import com.eventus.bookanalyser.comparator.BidComparator;
-import com.eventus.bookanalyser.app.OrderBookOld;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 
 import java.util.Scanner;
@@ -19,6 +18,7 @@ public class BookAnalyzer {
 /*
         String dataLog = in.nextLine();
         if (dataLog.isEmpty() || dataLog.isBlank()) {
+
             throw new IllegalArgumentException();
         }
 */
@@ -74,7 +74,7 @@ public class BookAnalyzer {
             System.out.println(ord.toString());
         }
 
-        OrderBookOld orderBook = new OrderBookOld();
+        //OrderBookOld orderBook = new OrderBookOld();
 
 
 
