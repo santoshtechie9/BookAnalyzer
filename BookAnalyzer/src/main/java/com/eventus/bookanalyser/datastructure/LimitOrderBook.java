@@ -19,6 +19,8 @@ public class LimitOrderBook implements IOrderBook {
     private final Set<LimitOrderEntry> askList;
     // map for bookkeeping of order entries
     private final Map<String, LimitOrderEntry> orderBookMap;
+    private Double buyExpenseTotal = 0.0;
+    private Double sellIncomeTotal = 0.0;
 
     public LimitOrderBook(String instrument) {
         this.instrument = instrument;
@@ -40,9 +42,12 @@ public class LimitOrderBook implements IOrderBook {
 
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bidList);
+            calculateExpense(limitOrderEntry, 200);
         } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, askList);
+            calculateIncome(limitOrderEntry, 200);
         }
+
     }
 
     private boolean isAskOrder(LimitOrderEntry limitOrderEntry) {
@@ -86,6 +91,7 @@ public class LimitOrderBook implements IOrderBook {
                 //bidList.add(existingEntry);
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
+            calculateExpense(newOrderEntry, 200);
         } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 askList.remove(existingEntry);
@@ -96,6 +102,7 @@ public class LimitOrderBook implements IOrderBook {
                 //askList.add(existingEntry);
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
+            calculateIncome(newOrderEntry, 200);
         }
     }
 
@@ -119,16 +126,16 @@ public class LimitOrderBook implements IOrderBook {
     }
 
     // calculate the expenses
-    public double calculateExpense(int targetSize) {
-        double newExpense = 0;
+    public Double calculateExpense(LimitOrderEntry limitOrderEntry, int targetSize) {
+        Double newExpenseTotal = 0.0;
         int tempTargetSize = targetSize;
         if (!bidList.isEmpty()) {
             for (LimitOrderEntry orderEntry : bidList) {
                 if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                    newExpense += (tempTargetSize * orderEntry.getPrice());
+                    newExpenseTotal += (tempTargetSize * orderEntry.getPrice());
                     tempTargetSize -= tempTargetSize;
                 } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                    newExpense += (orderEntry.getSize() * orderEntry.getPrice());
+                    newExpenseTotal += (orderEntry.getSize() * orderEntry.getPrice());
                     tempTargetSize = tempTargetSize - orderEntry.getSize();
                 } else {
                     break;
@@ -137,21 +144,25 @@ public class LimitOrderBook implements IOrderBook {
                 //System.out.println(String.format("tempTargetSize: %d", tempTargetSize));
                 //System.out.println(String.format("Expense: %f", newExpense));
             }
-        } else
-            System.out.println("No Bids submitted yet!!!");
-        return newExpense;
+        }
+
+        if (buyExpenseTotal != newExpenseTotal && (targetSize - tempTargetSize) == targetSize) {
+            buyExpenseTotal = newExpenseTotal;
+            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "S", newExpenseTotal == 0 ? "NA" : String.valueOf(newExpenseTotal)));
+        }
+        return newExpenseTotal;
     }
 
     //calculate the income
-    public double calculateIncome(int targetSize) {
-        double newIncome = 0;
+    public double calculateIncome(LimitOrderEntry limitOrderEntry, int targetSize) {
+        double newIncomeTotal = 0;
         int tempTargetSize = targetSize;
         for (LimitOrderEntry orderEntry : askList) {
             if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                newIncome += (tempTargetSize * orderEntry.getPrice());
+                newIncomeTotal += (tempTargetSize * orderEntry.getPrice());
                 tempTargetSize -= tempTargetSize;
             } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                newIncome += (orderEntry.getSize() * orderEntry.getPrice());
+                newIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
                 tempTargetSize -= orderEntry.getSize();
             } else {
                 break;
@@ -160,7 +171,12 @@ public class LimitOrderBook implements IOrderBook {
             //System.out.println(String.format("netTargetSize: %d", tempTargetSize));
             //System.out.println(String.format("Expense: %f", newIncome));
         }
-        return newIncome;
+
+        if (sellIncomeTotal != newIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
+            buyExpenseTotal = newIncomeTotal;
+            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "B", newIncomeTotal == 0 ? "NA" : String.valueOf(newIncomeTotal)));
+        }
+        return newIncomeTotal;
     }
 
     //utility methods are provided for better encapsulation
