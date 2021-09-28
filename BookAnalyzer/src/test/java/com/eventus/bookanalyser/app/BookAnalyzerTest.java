@@ -53,7 +53,7 @@ class BookAnalyzerTest {
     void testTargetSizeOneFileInput() {
         bookAnalyzer = new BookAnalyzer("ZING", 1);
         try {
-            String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_1_.txt";
+            String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_1.txt";
             PrintStream stream = new PrintStream(file);
             System.setOut(stream);
             FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
@@ -106,7 +106,4 @@ class BookAnalyzerTest {
         }
     }
 
-    @Test
-    void hasValidNumberOfFields() {
-    }
 }

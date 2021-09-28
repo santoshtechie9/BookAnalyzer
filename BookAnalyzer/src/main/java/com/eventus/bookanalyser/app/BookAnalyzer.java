@@ -36,8 +36,6 @@ public class BookAnalyzer implements Observer {
     private static void isValidArgument(String[] args) {
         if (args.length != 1)
             throw new IllegalArgumentException("Invalid argument; Expected syntax: BookAnalyzer <target-size>");
-        if (!(Integer.valueOf(args[0]) instanceof Integer))
-            throw new IllegalArgumentException("target-size should be an integer");
     }
 
     public void run(String dataLog) {
@@ -76,37 +74,46 @@ public class BookAnalyzer implements Observer {
     }
 
     private void isValidField(List<String> dataLogArray) {
-
-        long timestamp = Long.valueOf(dataLogArray.get(0));
         String orderType = dataLogArray.get(1);
-        String orderId = dataLogArray.get(2);
-
         if (!(orderType.equalsIgnoreCase(OrderTypes.A.name()) || orderType.equalsIgnoreCase(OrderTypes.R.name())))
             throw new IllegalArgumentException(String.format("Invalid orderType: %s", orderType));
 
         if (orderType.equalsIgnoreCase(OrderTypes.A.name())) {
-            String side = dataLogArray.get(3);
-            double price = Double.valueOf(dataLogArray.get(4));
-            int size = Integer.valueOf(dataLogArray.get(5));
-            if (!(timestamp >= 0))
-                throw new IllegalArgumentException(String.format("Invalid timestamp: %d", timestamp));
-            else if (orderId.isBlank() || orderId.isEmpty())
-                throw new IllegalArgumentException(String.format("Invalid orderId: %s", orderId));
-            else if (!(side.equalsIgnoreCase(OrderTypes.B.name()) || side.equalsIgnoreCase(OrderTypes.S.name())))
-                throw new IllegalArgumentException(String.format("Invalid side: %s", side));
-            else if (price <= 0)
-                throw new IllegalArgumentException(String.format("Invalid price: %f", price));
-            else if (size <= 0)
-                throw new IllegalArgumentException(String.format("Invalid size: %d", timestamp));
+            hasValidAddOrderArguments(dataLogArray);
         } else {
-            int size = Integer.valueOf(dataLogArray.get(3));
-            if (!(timestamp >= 0))
-                throw new IllegalArgumentException(String.format("Invalid timestamp: %d", timestamp));
-            else if (orderId.isBlank() || orderId.isEmpty())
-                throw new IllegalArgumentException(String.format("Invalid orderId: %s", orderId));
-            else if (size <= 0)
-                throw new IllegalArgumentException(String.format("Invalid size: %d", timestamp));
+            hasValidRemoveOrderArguments(dataLogArray);
+
         }
+    }
+
+    private void hasValidRemoveOrderArguments(List<String> dataLogArray) {
+        long timestamp = Long.parseLong(dataLogArray.get(0));
+        String orderId = dataLogArray.get(2);
+        int size = Integer.parseInt(dataLogArray.get(3));
+        if (timestamp < 0)
+            throw new IllegalArgumentException(String.format("Invalid timestamp: %d", timestamp));
+        else if (orderId.isBlank() || orderId.isEmpty())
+            throw new IllegalArgumentException(String.format("Invalid orderId: %s", orderId));
+        else if (size <= 0)
+            throw new IllegalArgumentException(String.format("Invalid size: %d", timestamp));
+    }
+
+    private void hasValidAddOrderArguments(List<String> dataLogArray) {
+        long timestamp = Long.parseLong(dataLogArray.get(0));
+        String orderId = dataLogArray.get(2);
+        String side = dataLogArray.get(3);
+        double price = Double.parseDouble(dataLogArray.get(4));
+        int size = Integer.parseInt(dataLogArray.get(5));
+        if (timestamp < 0)
+            throw new IllegalArgumentException(String.format("Invalid timestamp: %d", timestamp));
+        else if (orderId.isBlank() || orderId.isEmpty())
+            throw new IllegalArgumentException(String.format("Invalid orderId: %s", orderId));
+        else if (!(side.equalsIgnoreCase(OrderTypes.B.name()) || side.equalsIgnoreCase(OrderTypes.S.name())))
+            throw new IllegalArgumentException(String.format("Invalid side: %s", side));
+        else if (price <= 0)
+            throw new IllegalArgumentException(String.format("Invalid price: %f", price));
+        else if (size <= 0)
+            throw new IllegalArgumentException(String.format("Invalid size: %d", timestamp));
     }
 
     public void hasValidNumberOfFields(List<String> dataLogArray) {
@@ -115,30 +122,27 @@ public class BookAnalyzer implements Observer {
         if (orderType.equalsIgnoreCase(OrderTypes.A.name())) {
             if (fieldCount != 6)
                 throw new IllegalArgumentException("Invalid argument; Add Order data log should contain 6 fields; space delimited!");
-        } else if (orderType.equalsIgnoreCase(OrderTypes.R.name())) {
-            if (fieldCount != 4)
-                throw new IllegalArgumentException("Invalid row; Reduce Order data log should contain 4 fields; space delimited!");
+        } else if (orderType.equalsIgnoreCase(OrderTypes.R.name()) && fieldCount != 4) {
+            throw new IllegalArgumentException("Invalid row; Reduce Order data log should contain 4 fields; space delimited!");
         }
     }
 
     private LimitOrderEntry creteAddOrderEntry(List<String> dataLogArray) {
-        long timestamp = Long.valueOf(dataLogArray.get(0));
+        long timestamp = Long.parseLong(dataLogArray.get(0));
         String orderType = dataLogArray.get(1);
         String orderId = dataLogArray.get(2);
         String side = dataLogArray.get(3);
-        double price = Double.valueOf(dataLogArray.get(4));
-        int size = Integer.valueOf(dataLogArray.get(5));
-        LimitOrderEntry limitOrderEntry = new LimitOrderEntry(timestamp, orderType, orderId, side, price, size);
-        return limitOrderEntry;
+        double price = Double.parseDouble(dataLogArray.get(4));
+        int size = Integer.parseInt(dataLogArray.get(5));
+        return new LimitOrderEntry(timestamp, orderType, orderId, side, price, size);
     }
 
     private LimitOrderEntry creteRemoveOrderEntry(List<String> dataLogArray) {
-        long timestamp = Long.valueOf(dataLogArray.get(0));
+        long timestamp = Long.parseLong(dataLogArray.get(0));
         String orderType = dataLogArray.get(1);
         String orderId = dataLogArray.get(2);
-        int size = Integer.valueOf(dataLogArray.get(3));
-        LimitOrderEntry limitOrderEntry = new LimitOrderEntry(timestamp, orderType, orderId, null, null, size);
-        return limitOrderEntry;
+        int size = Integer.parseInt(dataLogArray.get(3));
+        return new LimitOrderEntry(timestamp, orderType, orderId, null, null, size);
     }
 
     private void processOrder(LimitOrderEntry limitOrderEntry) {
