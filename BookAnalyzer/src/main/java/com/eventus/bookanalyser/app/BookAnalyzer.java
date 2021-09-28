@@ -16,11 +16,9 @@ public class BookAnalyzer implements Observer {
         // Using Scanner for Getting Input from User
         Scanner in = new Scanner(System.in);
         String dataLog = "Start";
-
         //fail fast
         isValidArgument(args);
         BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", Integer.valueOf(args[0]));
-
         while (!dataLog.equalsIgnoreCase("exit!")) {
             System.out.print("Input: ");
             dataLog = in.nextLine();
