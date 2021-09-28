@@ -11,8 +11,6 @@ import java.util.Scanner;
 
 public class BookAnalyzer {
 
-    //private double currentIncome;
-    //private double currentExpense;
     private final LimitOrderBook orderBook;
 
     public static void main(String[] args) {
@@ -30,12 +28,12 @@ public class BookAnalyzer {
             if (dataLog.isEmpty() || dataLog.isBlank())
                 throw new InputMismatchException();
             bookAnalyzer.run(dataLog);
-            System.out.println("**********************************");
+            //System.out.println("**********************************");
         }
     }
 
     public BookAnalyzer(String instrument, Integer targetSize) {
-        this.orderBook = new LimitOrderBook("ZING", targetSize);
+        this.orderBook = new LimitOrderBook(instrument, targetSize);
     }
 
     private static void isValidArgument(String[] args) {
@@ -48,7 +46,8 @@ public class BookAnalyzer {
     public void run(String dataLog) {
         LimitOrderEntry limitOrderEntry = null;
         List<String> dataLogArray = Arrays.asList(dataLog.split(" "));
-        //fast fail checks
+
+        //fail fast
         hasValidNumberOfFields(dataLogArray);
         isValidField(dataLogArray);
 
@@ -57,7 +56,6 @@ public class BookAnalyzer {
         else if (isRemoveOrder(dataLogArray))
             limitOrderEntry = creteRemoveOrderEntry(dataLogArray);
 
-        //System.out.println("Valid data log");
         processOrder(limitOrderEntry);
 
     }
@@ -70,7 +68,6 @@ public class BookAnalyzer {
     private boolean isRemoveOrder(LimitOrderEntry limitOrderEntry) {
         return limitOrderEntry.getOrderType().equalsIgnoreCase(OrderTypes.R.name());
     }
-
 
     private boolean isAddOrder(List<String> dataLogArray) {
         String orderType = dataLogArray.get(1);
@@ -87,10 +84,10 @@ public class BookAnalyzer {
         String orderType = dataLogArray.get(1);
         String orderId = dataLogArray.get(2);
 
-        if (!(orderType.equalsIgnoreCase("A") || orderType.equalsIgnoreCase("R")))
+        if (!(orderType.equalsIgnoreCase(OrderTypes.A.name()) || orderType.equalsIgnoreCase(OrderTypes.R.name())))
             throw new IllegalArgumentException(String.format("Invalid orderType: %s", orderType));
 
-        if (orderType.equalsIgnoreCase("A")) {
+        if (orderType.equalsIgnoreCase(OrderTypes.A.name())) {
             String side = dataLogArray.get(3);
             double price = Double.valueOf(dataLogArray.get(4));
             int size = Integer.valueOf(dataLogArray.get(5));
@@ -98,7 +95,7 @@ public class BookAnalyzer {
                 throw new IllegalArgumentException(String.format("Invalid timestamp: %d", timestamp));
             else if (orderId.isBlank() || orderId.isEmpty())
                 throw new IllegalArgumentException(String.format("Invalid orderId: %s", orderId));
-            else if (!(side.equalsIgnoreCase("B") || side.equalsIgnoreCase("S")))
+            else if (!(side.equalsIgnoreCase(OrderTypes.B.name()) || side.equalsIgnoreCase(OrderTypes.S.name())))
                 throw new IllegalArgumentException(String.format("Invalid side: %s", side));
             else if (price <= 0)
                 throw new IllegalArgumentException(String.format("Invalid price: %f", price));
@@ -147,26 +144,12 @@ public class BookAnalyzer {
         return limitOrderEntry;
     }
 
-
     private void processOrder(LimitOrderEntry limitOrderEntry) {
-
-        if (isAddOrder(limitOrderEntry)) {
+        if (isAddOrder(limitOrderEntry))
             orderBook.addOrder(limitOrderEntry);
-            //printExpense(limitOrderEntry);
-        }
 
-        if (isRemoveOrder(limitOrderEntry)) {
+        if (isRemoveOrder(limitOrderEntry))
             orderBook.modifyOrder(limitOrderEntry);
-            //printIncome(limitOrderEntry);
-        }
-    }
-
-    public void printIncome(LimitOrderEntry orderEntry) {
-        System.out.println(String.format("%l %s %d", orderEntry.getTimestamp(), orderEntry.getSide(), orderBook.calculateIncome(orderEntry, 100)));
-    }
-
-    void printExpense(LimitOrderEntry orderEntry) {
-        System.out.println(String.format("%l %s %d", orderEntry.getTimestamp(), orderEntry.getSide(), orderBook.calculateExpense(orderEntry, 100)));
     }
 
 }
