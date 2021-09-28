@@ -3,15 +3,14 @@ package com.eventus.bookanalyser.app;
 import com.eventus.bookanalyser.datastructure.LimitOrderBook;
 import com.eventus.bookanalyser.datastructure.OrderTypes;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
+import com.eventus.bookanalyser.model.NotifyOrderBookEvent;
 
-import java.util.Arrays;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
-public class BookAnalyzer {
+public class BookAnalyzer implements Observer {
 
     private final LimitOrderBook orderBook;
+    private double prevExpense = 0.0;
 
     public static void main(String[] args) {
         // Using Scanner for Getting Input from User
@@ -28,12 +27,12 @@ public class BookAnalyzer {
             if (dataLog.isEmpty() || dataLog.isBlank())
                 throw new InputMismatchException();
             bookAnalyzer.run(dataLog);
-            //System.out.println("**********************************");
         }
     }
 
     public BookAnalyzer(String instrument, Integer targetSize) {
         this.orderBook = new LimitOrderBook(instrument, targetSize);
+        orderBook.addObserver(this);
     }
 
     private static void isValidArgument(String[] args) {
@@ -147,9 +146,17 @@ public class BookAnalyzer {
     private void processOrder(LimitOrderEntry limitOrderEntry) {
         if (isAddOrder(limitOrderEntry))
             orderBook.addOrder(limitOrderEntry);
-
         if (isRemoveOrder(limitOrderEntry))
             orderBook.modifyOrder(limitOrderEntry);
     }
 
+    @Override
+    public void update(Observable o, Object arg) {
+        NotifyOrderBookEvent notifyEvent = (NotifyOrderBookEvent) arg;
+        System.out.println(String.format("%d %s %s", notifyEvent.getTimestamp(), notifyEvent.getSide(), notifyEvent.getTotal()));
+    }
+
+    public void setPrevExpense(double prevExpense) {
+        this.prevExpense = prevExpense;
+    }
 }

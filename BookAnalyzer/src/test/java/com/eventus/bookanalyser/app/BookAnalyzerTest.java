@@ -64,6 +64,7 @@ class BookAnalyzerTest {
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
+            stream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,6 +85,7 @@ class BookAnalyzerTest {
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
+            stream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,6 +106,7 @@ class BookAnalyzerTest {
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
+            stream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

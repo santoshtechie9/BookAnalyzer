@@ -3,16 +3,14 @@ package com.eventus.bookanalyser.datastructure;
 import com.eventus.bookanalyser.comparator.AskComparator;
 import com.eventus.bookanalyser.comparator.BidComparator;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
+import com.eventus.bookanalyser.model.NotifyOrderBookEvent;
 import com.sun.jdi.request.DuplicateRequestException;
 
 import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
-public class LimitOrderBook implements IOrderBook {
+public class LimitOrderBook extends Observable implements IOrderBook {
 
     // instrument id to which the order book belongs to.
     private final String instrument;
@@ -164,13 +162,24 @@ public class LimitOrderBook implements IOrderBook {
         if (bidInstrCount >= targetSize && prevExpense != tmpCurrExpense) {
             prevExpense = tmpCurrExpense;
             prevBuySize = targetSize;
-            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrExpense));
+            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrExpense));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), String.format("%.2f", tmpCurrExpense));
         } else if (bidInstrCount <= targetSize && prevExpense != tmpCurrExpense && prevBuySize > tmpTargetSize) {
             prevExpense = Double.NaN;
             prevBuySize = -1;
-            System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
+            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), "NA");
         }
         return tmpCurrExpense;
+    }
+
+    private void updateEventStatus(Long timestamp, String side, String total) {
+        NotifyOrderBookEvent notifyEvent = new NotifyOrderBookEvent();
+        notifyEvent.setTimestamp(timestamp);
+        notifyEvent.setSide(side);
+        notifyEvent.setTotal(total);
+        setChanged();
+        notifyObservers(notifyEvent);
     }
 
     public double calculateIncomeNew(LimitOrderEntry currOrderEntry, int targetSize) {
@@ -195,15 +204,16 @@ public class LimitOrderBook implements IOrderBook {
         if (askInstrumentsSize >= targetSize && prevIncome != tmpCurrIncome) {
             prevIncome = tmpCurrIncome;
             prevSellSize = targetSize;
-            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
+            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), String.format("%.2f", tmpCurrIncome));
         } else if (askInstrumentsSize <= targetSize && prevIncome != tmpCurrIncome && prevSellSize > tmpTargetSize) {
             prevIncome = Double.NaN;
             prevSellSize = -1;
-            System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
+            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), "NA");
         }
         return tmpCurrIncome;
     }
-
 
     //utility methods are provided for better encapsulation
     public void printBidList() {

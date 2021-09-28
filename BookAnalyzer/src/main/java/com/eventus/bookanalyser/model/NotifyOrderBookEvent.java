@@ -1,9 +1,7 @@
 package com.eventus.bookanalyser.model;
 
-public class OutputEntry {
+public class NotifyOrderBookEvent {
 
-    private int bidInstrCount;
-    private int askInstrCount;
     private Long timestamp;
     private String side;
     private String total;
@@ -32,19 +30,4 @@ public class OutputEntry {
         this.total = total;
     }
 
-    public int getBidInstrCount() {
-        return bidInstrCount;
-    }
-
-    public void setBidInstrCount(int bidInstrCount) {
-        this.bidInstrCount = bidInstrCount;
-    }
-
-    public int getAskInstrCount() {
-        return askInstrCount;
-    }
-
-    public void setAskInstrCount(int askInstrCount) {
-        this.askInstrCount = askInstrCount;
-    }
 }
