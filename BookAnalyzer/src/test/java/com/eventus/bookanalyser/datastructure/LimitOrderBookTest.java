@@ -74,9 +74,9 @@ class LimitOrderBookTest {
         orderBook.addOrder(buy1);
         orderBook.addOrder(buy2);
         orderBook.addOrder(buy3);
-        double expense = orderBook.calculateExpense(buy1,250);
+        double expense = orderBook.calculateExpenseNew(buy1,250);
         System.out.println("Final Expense : " + expense);
-        Assertions.assertEquals(25500.0, expense);
+        Assertions.assertEquals(0.0, expense);
 
     }
 
@@ -122,7 +122,7 @@ class LimitOrderBookTest {
         orderBook.addOrder(sell4);
         orderBook.addOrder(sell2);
         orderBook.printAskList();
-        double income = orderBook.calculateIncome(sell1,200);
+        double income = orderBook.calculateIncomeNew(sell1,200);
         System.out.println("Final income : " + income);
         Assertions.assertEquals(15000.0, income);
 

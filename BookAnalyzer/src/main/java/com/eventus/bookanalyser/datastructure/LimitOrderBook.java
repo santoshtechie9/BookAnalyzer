@@ -21,13 +21,12 @@ public class LimitOrderBook implements IOrderBook {
     private final Set<LimitOrderEntry> asks;
     // map for bookkeeping of order entries
     private final Map<String, LimitOrderEntry> orderBookMap;
-    private double prevBuyExpenseTotal = 0.0;
-    private double prevSellIncomeTotal = 0.0;
-    private int prevBuySizeTotal = -1;
-    private int prevSellSizeTotal = -1;
-    private int bidInstrCount = 0;
-    private int askInstrCount = 0;
-
+    private double prevExpense = 0.0;
+    private double prevIncome = 0.0;
+    private int prevBuySize = -1;
+    private int prevSellSize = -1;
+    /// create an object of DecimalFormat class
+    private static final DecimalFormat df_obj = new DecimalFormat("#.##");
 
     public LimitOrderBook(String instrument, int targetSize) {
         this.instrument = instrument;
@@ -49,11 +48,9 @@ public class LimitOrderBook implements IOrderBook {
         isValidAddOrder(limitOrderEntry);
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bids);
-            bidInstrCount = countInstr(bids);
             calculateExpenseNew(limitOrderEntry, targetSize);
         } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, asks);
-            askInstrCount = countInstr(asks);
             calculateIncomeNew(limitOrderEntry, targetSize);
         }
     }
@@ -131,69 +128,10 @@ public class LimitOrderBook implements IOrderBook {
             throw new InvalidParameterException(String.format("Expected orderType : R ; received orderType is : %s", newOrderEntry.getOrderType()));
     }
 
-    // calculate the expenses
-    public double calculateExpense(LimitOrderEntry limitOrderEntry, int targetSize) {
-        double currExpenseTotal = 0.0;
-        int tempTargetSize = targetSize;
-        if (!bids.isEmpty()) {
-            for (LimitOrderEntry orderEntry : bids) {
-                if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                    //if (((targetSize - tempTargetSize) > 0) && tempTargetSize <= orderEntry.getSize()) {
-                    currExpenseTotal += (tempTargetSize * orderEntry.getPrice());
-                    tempTargetSize -= tempTargetSize;
-                } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                    //} else if (((targetSize - tempTargetSize) > 0) && tempTargetSize > orderEntry.getSize()) {
-                    currExpenseTotal += (orderEntry.getSize() * orderEntry.getPrice());
-                    tempTargetSize = tempTargetSize - orderEntry.getSize();
-                } else {
-                    break;
-                }
-            }
-        }
-        if ((prevBuyExpenseTotal != currExpenseTotal) && ((targetSize - tempTargetSize) == targetSize)) {
-            prevBuyExpenseTotal = currExpenseTotal;
-            prevBuySizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "S", currExpenseTotal));
-        } else if (prevBuyExpenseTotal != currExpenseTotal && prevBuySizeTotal > tempTargetSize) {
-            prevBuyExpenseTotal = Double.NaN;
-            prevBuySizeTotal = -1;
-            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "S", "NA"));
-        }
-        return currExpenseTotal;
-    }
 
-    //calculate the income
-    public double calculateIncome(LimitOrderEntry limitOrderEntry, int targetSize) {
-        double currIncomeTotal = 0.0;
-        int tempTargetSize = targetSize;
-        for (LimitOrderEntry orderEntry : asks) {
-            if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                currIncomeTotal += (tempTargetSize * orderEntry.getPrice());
-                tempTargetSize -= tempTargetSize;
-            } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                //} else if (((targetSize - tempTargetSize) >0) && tempTargetSize > orderEntry.getSize()) {
-                currIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
-                tempTargetSize = tempTargetSize - orderEntry.getSize();
-            } else {
-                break;
-            }
-        }
-
-        if ((prevSellIncomeTotal != currIncomeTotal) && ((targetSize - tempTargetSize) == targetSize)) {
-            prevSellIncomeTotal = currIncomeTotal;
-            prevSellSizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "B", currIncomeTotal));
-        } else if (prevSellIncomeTotal != currIncomeTotal && prevSellSizeTotal > tempTargetSize) {
-            prevSellIncomeTotal = Double.NaN;
-            prevSellSizeTotal = -1;
-            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "B", "NA"));
-        }
-        return currIncomeTotal;
-    }
-
-    private int countInstr(Set<LimitOrderEntry> set) {
+    private int getTotalInstrumentCount(Set<LimitOrderEntry> set) {
         int tmpCounter = 0;
-        if (set.size() != 0) {
+        if (!set.isEmpty()) {
             for (LimitOrderEntry limitOrderEntry : set) {
                 tmpCounter += limitOrderEntry.getSize();
                 if (tmpCounter >= targetSize)
@@ -204,22 +142,17 @@ public class LimitOrderBook implements IOrderBook {
             return tmpCounter;
     }
 
-    private double calculateExpenseNew(LimitOrderEntry currOrderEntry, int targetSize) {
-
-        int i;
-        if (currOrderEntry.getTimestamp() == 28800538 || currOrderEntry.getTimestamp() ==28800744) //32913787 32913788
-            i = 1;
-
-        int bidInstrCount = countInstr(bids);
-        double tmpCurrBuyExpenseTotal = 0.0;
+    public double calculateExpenseNew(LimitOrderEntry currOrderEntry, int targetSize) {
+        int bidInstrCount = getTotalInstrumentCount(bids);
+        double tmpCurrExpense = 0.0;
         int tmpTargetSize = 0;
         if (bidInstrCount >= targetSize) {
             for (LimitOrderEntry bidEntry : bids) {
                 if ((targetSize - tmpTargetSize) >= bidEntry.getSize()) {
-                    tmpCurrBuyExpenseTotal += (bidEntry.getSize() * bidEntry.getPrice());
+                    tmpCurrExpense += (bidEntry.getSize() * bidEntry.getPrice());
                     tmpTargetSize += bidEntry.getSize();
                 } else if ((targetSize - tmpTargetSize) < bidEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
-                    tmpCurrBuyExpenseTotal += (targetSize - tmpTargetSize) * bidEntry.getPrice();
+                    tmpCurrExpense += (targetSize - tmpTargetSize) * bidEntry.getPrice();
                     tmpTargetSize += (targetSize - tmpTargetSize);
                 } else if ((targetSize - tmpTargetSize) == 0) {
                     break;
@@ -227,37 +160,30 @@ public class LimitOrderBook implements IOrderBook {
             }
         }
         //print output
-        /// create an object of DecimalFormat class
-        DecimalFormat df_obj = new DecimalFormat("#.##");
-        tmpCurrBuyExpenseTotal = Double.valueOf(df_obj.format(tmpCurrBuyExpenseTotal));
-        if (bidInstrCount >= targetSize && prevBuyExpenseTotal != tmpCurrBuyExpenseTotal) {
-            prevBuyExpenseTotal = tmpCurrBuyExpenseTotal;
-            prevBuySizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrBuyExpenseTotal));
-        } else if (bidInstrCount <= targetSize && prevBuyExpenseTotal != tmpCurrBuyExpenseTotal && prevBuySizeTotal > tmpTargetSize) {
-            prevBuyExpenseTotal = Double.NaN;
-            prevBuySizeTotal = -1;
+        tmpCurrExpense = Double.valueOf(df_obj.format(tmpCurrExpense));
+        if (bidInstrCount >= targetSize && prevExpense != tmpCurrExpense) {
+            prevExpense = tmpCurrExpense;
+            prevBuySize = targetSize;
+            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrExpense));
+        } else if (bidInstrCount <= targetSize && prevExpense != tmpCurrExpense && prevBuySize > tmpTargetSize) {
+            prevExpense = Double.NaN;
+            prevBuySize = -1;
             System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
         }
-        return tmpCurrBuyExpenseTotal;
+        return tmpCurrExpense;
     }
 
-    private double calculateIncomeNew(LimitOrderEntry currOrderEntry, int targetSize) {
-
-        int i;
-        if (currOrderEntry.getTimestamp() == 28800538 || currOrderEntry.getTimestamp() ==28800744) //32913787 32913788
-            i = 1;
-
-        int askInstrCount = countInstr(asks);
-        double tmpCurrSellIncomeTotal = 0.0;
+    public double calculateIncomeNew(LimitOrderEntry currOrderEntry, int targetSize) {
+        int askInstrumentsSize = getTotalInstrumentCount(asks);
+        double tmpCurrIncome = 0.0;
         int tmpTargetSize = 0;
-        if (askInstrCount >= targetSize) {
+        if (askInstrumentsSize >= targetSize) {
             for (LimitOrderEntry askEntry : asks) {
                 if ((targetSize - tmpTargetSize) >= askEntry.getSize()) {
-                    tmpCurrSellIncomeTotal += (askEntry.getSize() * askEntry.getPrice());
+                    tmpCurrIncome += (askEntry.getSize() * askEntry.getPrice());
                     tmpTargetSize += askEntry.getSize();
                 } else if ((targetSize - tmpTargetSize) < askEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
-                    tmpCurrSellIncomeTotal += (targetSize - tmpTargetSize) * askEntry.getPrice();
+                    tmpCurrIncome += (targetSize - tmpTargetSize) * askEntry.getPrice();
                     tmpTargetSize += (targetSize - tmpTargetSize);
                 } else if ((targetSize - tmpTargetSize) == 0) {
                     break;
@@ -265,19 +191,17 @@ public class LimitOrderBook implements IOrderBook {
             }
         }
         //print output
-        /// create an object of DecimalFormat class
-        DecimalFormat df_obj = new DecimalFormat("#.##");
-        tmpCurrSellIncomeTotal = Double.valueOf(df_obj.format(tmpCurrSellIncomeTotal));
-        if (askInstrCount >= targetSize && prevSellIncomeTotal != tmpCurrSellIncomeTotal) {
-            prevSellIncomeTotal = tmpCurrSellIncomeTotal;
-            prevSellSizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrSellIncomeTotal));
-        } else if (askInstrCount <= targetSize && prevSellIncomeTotal != tmpCurrSellIncomeTotal && prevSellSizeTotal > tmpTargetSize) {
-            prevSellIncomeTotal = Double.NaN;
-            prevSellSizeTotal = -1;
+        tmpCurrIncome = Double.valueOf(df_obj.format(tmpCurrIncome));
+        if (askInstrumentsSize >= targetSize && prevIncome != tmpCurrIncome) {
+            prevIncome = tmpCurrIncome;
+            prevSellSize = targetSize;
+            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
+        } else if (askInstrumentsSize <= targetSize && prevIncome != tmpCurrIncome && prevSellSize > tmpTargetSize) {
+            prevIncome = Double.NaN;
+            prevSellSize = -1;
             System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
         }
-        return tmpCurrSellIncomeTotal;
+        return tmpCurrIncome;
     }
 
 
@@ -290,14 +214,6 @@ public class LimitOrderBook implements IOrderBook {
     public void printAskList() {
         System.out.println("Printing Asks:");
         asks.forEach(x -> System.out.println(x.toString()));
-    }
-
-    public Map<String, LimitOrderEntry> getOrderBookMap() {
-        return orderBookMap;
-    }
-
-    public int getOrderBookMapSize() {
-        return orderBookMap.size();
     }
 
     public int getTotalBidSize() {
