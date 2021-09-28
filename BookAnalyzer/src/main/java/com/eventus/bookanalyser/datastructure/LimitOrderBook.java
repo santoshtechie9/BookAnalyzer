@@ -6,6 +6,7 @@ import com.eventus.bookanalyser.model.LimitOrderEntry;
 import com.sun.jdi.request.DuplicateRequestException;
 
 import java.security.InvalidParameterException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,10 +21,13 @@ public class LimitOrderBook implements IOrderBook {
     private final Set<LimitOrderEntry> asks;
     // map for bookkeeping of order entries
     private final Map<String, LimitOrderEntry> orderBookMap;
-    private double prevBuyExpenseTotal = Double.NaN;
-    private Double prevSellIncomeTotal = Double.NaN;
+    private double prevBuyExpenseTotal = 0.0;
+    private double prevSellIncomeTotal = 0.0;
     private int prevBuySizeTotal = -1;
     private int prevSellSizeTotal = -1;
+    private int bidInstrCount = 0;
+    private int askInstrCount = 0;
+
 
     public LimitOrderBook(String instrument, int targetSize) {
         this.instrument = instrument;
@@ -45,10 +49,12 @@ public class LimitOrderBook implements IOrderBook {
         isValidAddOrder(limitOrderEntry);
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bids);
-            calculateExpense(limitOrderEntry, targetSize);
+            bidInstrCount = countInstr(bids);
+            calculateExpenseNew(limitOrderEntry, targetSize);
         } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, asks);
-            calculateIncome(limitOrderEntry, targetSize);
+            askInstrCount = countInstr(asks);
+            calculateIncomeNew(limitOrderEntry, targetSize);
         }
     }
 
@@ -92,16 +98,17 @@ public class LimitOrderBook implements IOrderBook {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateExpense(newOrderEntry, targetSize);
+            calculateExpenseNew(newOrderEntry, targetSize);
         } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 asks.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
+                existingEntry.setTimestamp(newOrderEntry.getTimestamp());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateIncome(newOrderEntry, targetSize);
+            calculateIncomeNew(newOrderEntry, targetSize);
         }
     }
 
@@ -126,60 +133,153 @@ public class LimitOrderBook implements IOrderBook {
 
     // calculate the expenses
     public double calculateExpense(LimitOrderEntry limitOrderEntry, int targetSize) {
-        double newExpenseTotal = 0.0;
+        double currExpenseTotal = 0.0;
         int tempTargetSize = targetSize;
         if (!bids.isEmpty()) {
             for (LimitOrderEntry orderEntry : bids) {
                 if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                    newExpenseTotal += (tempTargetSize * orderEntry.getPrice());
+                    //if (((targetSize - tempTargetSize) > 0) && tempTargetSize <= orderEntry.getSize()) {
+                    currExpenseTotal += (tempTargetSize * orderEntry.getPrice());
                     tempTargetSize -= tempTargetSize;
                 } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                    newExpenseTotal += (orderEntry.getSize() * orderEntry.getPrice());
+                    //} else if (((targetSize - tempTargetSize) > 0) && tempTargetSize > orderEntry.getSize()) {
+                    currExpenseTotal += (orderEntry.getSize() * orderEntry.getPrice());
                     tempTargetSize = tempTargetSize - orderEntry.getSize();
                 } else {
                     break;
                 }
             }
         }
-        if (prevBuyExpenseTotal != newExpenseTotal && (targetSize - tempTargetSize) == targetSize) {
-            prevBuyExpenseTotal = newExpenseTotal;
+        if ((prevBuyExpenseTotal != currExpenseTotal) && ((targetSize - tempTargetSize) == targetSize)) {
+            prevBuyExpenseTotal = currExpenseTotal;
             prevBuySizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "S", newExpenseTotal));
-        } else if (prevBuyExpenseTotal != newExpenseTotal && prevBuySizeTotal > tempTargetSize) {
+            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "S", currExpenseTotal));
+        } else if (prevBuyExpenseTotal != currExpenseTotal && prevBuySizeTotal > tempTargetSize) {
             prevBuyExpenseTotal = Double.NaN;
             prevBuySizeTotal = -1;
             System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "S", "NA"));
         }
-        return newExpenseTotal;
+        return currExpenseTotal;
     }
 
     //calculate the income
     public double calculateIncome(LimitOrderEntry limitOrderEntry, int targetSize) {
-        double currentIncomeTotal = 0.0;
+        double currIncomeTotal = 0.0;
         int tempTargetSize = targetSize;
         for (LimitOrderEntry orderEntry : asks) {
             if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                currentIncomeTotal += (tempTargetSize * orderEntry.getPrice());
+                currIncomeTotal += (tempTargetSize * orderEntry.getPrice());
                 tempTargetSize -= tempTargetSize;
             } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                currentIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
+                //} else if (((targetSize - tempTargetSize) >0) && tempTargetSize > orderEntry.getSize()) {
+                currIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
                 tempTargetSize = tempTargetSize - orderEntry.getSize();
             } else {
                 break;
             }
         }
 
-        if (prevSellIncomeTotal != currentIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
-            prevSellIncomeTotal = currentIncomeTotal;
+        if ((prevSellIncomeTotal != currIncomeTotal) && ((targetSize - tempTargetSize) == targetSize)) {
+            prevSellIncomeTotal = currIncomeTotal;
             prevSellSizeTotal = targetSize;
-            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "B", currentIncomeTotal));
-        } else if (prevSellIncomeTotal != currentIncomeTotal && prevSellSizeTotal > tempTargetSize) {
+            System.out.println(String.format("%d %s %.2f", limitOrderEntry.getTimestamp(), "B", currIncomeTotal));
+        } else if (prevSellIncomeTotal != currIncomeTotal && prevSellSizeTotal > tempTargetSize) {
             prevSellIncomeTotal = Double.NaN;
             prevSellSizeTotal = -1;
             System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "B", "NA"));
         }
-        return currentIncomeTotal;
+        return currIncomeTotal;
     }
+
+    private int countInstr(Set<LimitOrderEntry> set) {
+        int tmpCounter = 0;
+        if (set.size() != 0) {
+            for (LimitOrderEntry limitOrderEntry : set) {
+                tmpCounter += limitOrderEntry.getSize();
+                if (tmpCounter >= targetSize)
+                    break;
+            }
+            return tmpCounter;
+        } else
+            return tmpCounter;
+    }
+
+    private double calculateExpenseNew(LimitOrderEntry currOrderEntry, int targetSize) {
+
+        int i;
+        if (currOrderEntry.getTimestamp() == 28800538 || currOrderEntry.getTimestamp() ==28800744) //32913787 32913788
+            i = 1;
+
+        int bidInstrCount = countInstr(bids);
+        double tmpCurrBuyExpenseTotal = 0.0;
+        int tmpTargetSize = 0;
+        if (bidInstrCount >= targetSize) {
+            for (LimitOrderEntry bidEntry : bids) {
+                if ((targetSize - tmpTargetSize) >= bidEntry.getSize()) {
+                    tmpCurrBuyExpenseTotal += (bidEntry.getSize() * bidEntry.getPrice());
+                    tmpTargetSize += bidEntry.getSize();
+                } else if ((targetSize - tmpTargetSize) < bidEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
+                    tmpCurrBuyExpenseTotal += (targetSize - tmpTargetSize) * bidEntry.getPrice();
+                    tmpTargetSize += (targetSize - tmpTargetSize);
+                } else if ((targetSize - tmpTargetSize) == 0) {
+                    break;
+                }
+            }
+        }
+        //print output
+        /// create an object of DecimalFormat class
+        DecimalFormat df_obj = new DecimalFormat("#.##");
+        tmpCurrBuyExpenseTotal = Double.valueOf(df_obj.format(tmpCurrBuyExpenseTotal));
+        if (bidInstrCount >= targetSize && prevBuyExpenseTotal != tmpCurrBuyExpenseTotal) {
+            prevBuyExpenseTotal = tmpCurrBuyExpenseTotal;
+            prevBuySizeTotal = targetSize;
+            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrBuyExpenseTotal));
+        } else if (bidInstrCount <= targetSize && prevBuyExpenseTotal != tmpCurrBuyExpenseTotal && prevBuySizeTotal > tmpTargetSize) {
+            prevBuyExpenseTotal = Double.NaN;
+            prevBuySizeTotal = -1;
+            System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
+        }
+        return tmpCurrBuyExpenseTotal;
+    }
+
+    private double calculateIncomeNew(LimitOrderEntry currOrderEntry, int targetSize) {
+
+        int i;
+        if (currOrderEntry.getTimestamp() == 28800538 || currOrderEntry.getTimestamp() ==28800744) //32913787 32913788
+            i = 1;
+
+        int askInstrCount = countInstr(asks);
+        double tmpCurrSellIncomeTotal = 0.0;
+        int tmpTargetSize = 0;
+        if (askInstrCount >= targetSize) {
+            for (LimitOrderEntry askEntry : asks) {
+                if ((targetSize - tmpTargetSize) >= askEntry.getSize()) {
+                    tmpCurrSellIncomeTotal += (askEntry.getSize() * askEntry.getPrice());
+                    tmpTargetSize += askEntry.getSize();
+                } else if ((targetSize - tmpTargetSize) < askEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
+                    tmpCurrSellIncomeTotal += (targetSize - tmpTargetSize) * askEntry.getPrice();
+                    tmpTargetSize += (targetSize - tmpTargetSize);
+                } else if ((targetSize - tmpTargetSize) == 0) {
+                    break;
+                }
+            }
+        }
+        //print output
+        /// create an object of DecimalFormat class
+        DecimalFormat df_obj = new DecimalFormat("#.##");
+        tmpCurrSellIncomeTotal = Double.valueOf(df_obj.format(tmpCurrSellIncomeTotal));
+        if (askInstrCount >= targetSize && prevSellIncomeTotal != tmpCurrSellIncomeTotal) {
+            prevSellIncomeTotal = tmpCurrSellIncomeTotal;
+            prevSellSizeTotal = targetSize;
+            System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrSellIncomeTotal));
+        } else if (askInstrCount <= targetSize && prevSellIncomeTotal != tmpCurrSellIncomeTotal && prevSellSizeTotal > tmpTargetSize) {
+            prevSellIncomeTotal = Double.NaN;
+            prevSellSizeTotal = -1;
+            System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
+        }
+        return tmpCurrSellIncomeTotal;
+    }
+
 
     //utility methods are provided for better encapsulation
     public void printBidList() {

@@ -17,7 +17,7 @@ class BookAnalyzerTest {
 
     @BeforeEach
     public void before() {
-        BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", 1);
+        bookAnalyzer = new BookAnalyzer("ZING", 200);
         input = new ArrayList<>();
         input.add("28800538 A b S 44.26 100");
         input.add("28800562 A c B 44.10 100");
@@ -51,12 +51,53 @@ class BookAnalyzerTest {
 
     @Test
     void testTargetSizeOneFileInput() {
-        bookAnalyzer = new BookAnalyzer("ZING", 200);
+        //total 212419
+        bookAnalyzer = new BookAnalyzer("ZING", 1);
         try {
-            String file = "C:\\Users\\santo\\Downloads\\test1.txt";
+            String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_1.txt";
             PrintStream stream = new PrintStream(file);
             System.setOut(stream);
-            FileInputStream fis = new FileInputStream("C:\\Users\\santo\\Downloads\\book_analyzer.in");
+            FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
+            Scanner sc = new Scanner(fis);
+            while (sc.hasNextLine()) {
+                //System.out.println(sc.nextLine());
+                bookAnalyzer.run(sc.nextLine());
+            }
+            sc.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testTargetSize2HFileInput() {
+        //total 212419
+        bookAnalyzer = new BookAnalyzer("ZING", 200);
+        try {
+            String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_200.txt";
+            PrintStream stream = new PrintStream(file);
+            System.setOut(stream);
+            FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
+            Scanner sc = new Scanner(fis);
+            while (sc.hasNextLine()) {
+                //System.out.println(sc.nextLine());
+                bookAnalyzer.run(sc.nextLine());
+            }
+            sc.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testTargetSize10KFileInput() {
+        //total 212419
+        bookAnalyzer = new BookAnalyzer("ZING", 10000);
+        try {
+            String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_10000.txt";
+            PrintStream stream = new PrintStream(file);
+            System.setOut(stream);
+            FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
             Scanner sc = new Scanner(fis);
             while (sc.hasNextLine()) {
                 //System.out.println(sc.nextLine());

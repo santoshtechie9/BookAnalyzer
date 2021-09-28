@@ -5,7 +5,7 @@ import java.util.Objects;
 //use factory pattern or builder pattern
 public class LimitOrderEntry {
 
-    private final Long timestamp;
+    private Long timestamp;
     private final String orderType;
     private final String orderId;
     private final String side;
@@ -66,6 +66,10 @@ public class LimitOrderEntry {
 
     public void setSize(Integer size) {
         this.size = size;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override
