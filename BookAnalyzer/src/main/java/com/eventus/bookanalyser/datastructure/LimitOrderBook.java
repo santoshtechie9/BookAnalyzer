@@ -160,12 +160,10 @@ public class LimitOrderBook extends Observable implements IOrderBook {
         if (bidInstrCount >= targetSize && prevExpense != currExpense) {
             prevExpense = currExpense;
             prevBuySize = targetSize;
-            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrExpense));
             updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), String.format("%.2f", currExpense));
         } else if (bidInstrCount <= targetSize && prevExpense != currExpense && prevBuySize > currBuySize) {
             prevExpense = Double.NaN;
             prevBuySize = -1;
-            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
             updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), "NA");
         }
         return currExpense;
@@ -188,17 +186,14 @@ public class LimitOrderBook extends Observable implements IOrderBook {
                 }
             }
         }
-        //print output
         currIncome = Double.valueOf(df_obj.format(currIncome));
         if (askInstrumentsSize >= targetSize && prevIncome != currIncome) {
             prevIncome = currIncome;
             prevSellSize = targetSize;
-            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
             updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), String.format("%.2f", currIncome));
         } else if (askInstrumentsSize <= targetSize && prevIncome != currIncome && prevSellSize > currSellSize) {
             prevIncome = Double.NaN;
             prevSellSize = -1;
-            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
             updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), "NA");
         }
         return currIncome;
@@ -212,7 +207,7 @@ public class LimitOrderBook extends Observable implements IOrderBook {
         setChanged();
         notifyObservers(notifyEvent);
     }
-    
+
     //utility methods are provided for better encapsulation
     public void printBidList() {
         System.out.println("Printing Bids");
