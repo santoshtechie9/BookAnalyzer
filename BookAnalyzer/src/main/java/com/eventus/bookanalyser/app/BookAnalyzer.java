@@ -26,7 +26,8 @@ public class BookAnalyzer implements Observer {
             dataLog = in.nextLine();
             if (dataLog.isEmpty() || dataLog.isBlank())
                 throw new InputMismatchException();
-            bookAnalyzer.run(dataLog);
+            if (!dataLog.equalsIgnoreCase("exit!"))
+                bookAnalyzer.run(dataLog);
         }
     }
 
