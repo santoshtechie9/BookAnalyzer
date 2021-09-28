@@ -51,7 +51,6 @@ class BookAnalyzerTest {
 
     @Test
     void testTargetSizeOneFileInput() {
-        //total 212419
         bookAnalyzer = new BookAnalyzer("ZING", 1);
         try {
             String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_1_.txt";
@@ -60,7 +59,6 @@ class BookAnalyzerTest {
             FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
             Scanner sc = new Scanner(fis);
             while (sc.hasNextLine()) {
-                //System.out.println(sc.nextLine());
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
@@ -72,7 +70,6 @@ class BookAnalyzerTest {
 
     @Test
     void testTargetSize2HFileInput() {
-        //total 212419
         bookAnalyzer = new BookAnalyzer("ZING", 200);
         try {
             String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_200.txt";
@@ -81,7 +78,6 @@ class BookAnalyzerTest {
             FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
             Scanner sc = new Scanner(fis);
             while (sc.hasNextLine()) {
-                //System.out.println(sc.nextLine());
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
@@ -93,7 +89,6 @@ class BookAnalyzerTest {
 
     @Test
     void testTargetSize10KFileInput() {
-        //total 212419
         bookAnalyzer = new BookAnalyzer("ZING", 10000);
         try {
             String file = "C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\actual_out_10000.txt";
@@ -102,7 +97,6 @@ class BookAnalyzerTest {
             FileInputStream fis = new FileInputStream("C:\\Users\\santo\\IdeaProjects\\OrderBook\\BookAnalyzer\\src\\test\\resources\\book_analyzer_in.txt");
             Scanner sc = new Scanner(fis);
             while (sc.hasNextLine()) {
-                //System.out.println(sc.nextLine());
                 bookAnalyzer.run(sc.nextLine());
             }
             sc.close();
