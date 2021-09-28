@@ -21,7 +21,7 @@ class LimitOrderBookTest {
 
     @BeforeEach
     public void before() {
-        orderBook = new LimitOrderBook("ZING");
+        orderBook = new LimitOrderBook("ZING",200);
         buy1 = new LimitOrderEntry(1632610775496L, "A", "buy1", "B", 50.0, 100);
         buy2 = new LimitOrderEntry(1632610775496L, "A", "buy2", "B", 100.0, 200);
         buy3 = new LimitOrderEntry(1632610775496L, "A", "buy3", "B", 150.0, 30);

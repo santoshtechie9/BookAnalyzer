@@ -6,7 +6,7 @@ public class AppManager {
 
     public static void main(String[] args) {
 
-        BookAnalyzer bookAnalyzer = new BookAnalyzer();
+        BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", 200);
         String dataLog = "Start !!!";
 
         System.out.println("I am App Manager.");

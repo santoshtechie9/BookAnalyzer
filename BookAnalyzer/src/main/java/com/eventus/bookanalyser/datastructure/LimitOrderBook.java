@@ -15,6 +15,7 @@ public class LimitOrderBook implements IOrderBook {
 
     // instrument id to which the order book belongs to.
     private final String instrument;
+    private final int targerSize;
     private final Set<LimitOrderEntry> bidList;
     private final Set<LimitOrderEntry> askList;
     // map for bookkeeping of order entries
@@ -22,8 +23,9 @@ public class LimitOrderBook implements IOrderBook {
     private Double buyExpenseTotal = 0.0;
     private Double sellIncomeTotal = 0.0;
 
-    public LimitOrderBook(String instrument) {
+    public LimitOrderBook(String instrument, int targetSize) {
         this.instrument = instrument;
+        this.targerSize = targetSize;
         this.bidList = new TreeSet<>(new BidComparator());
         this.askList = new TreeSet<>(new AskComparator());
         this.orderBookMap = new HashMap<>();
@@ -36,16 +38,15 @@ public class LimitOrderBook implements IOrderBook {
 
     // method for adding order entries to bids or asks
     private void addOrderEntry(LimitOrderEntry limitOrderEntry) {
-        //fail fast checks
+        //fail fast
         isUniqueOrder(limitOrderEntry);
         isValidAddOrder(limitOrderEntry);
-
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bidList);
-            calculateExpense(limitOrderEntry, 200);
+            calculateExpense(limitOrderEntry, targerSize);
         } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, askList);
-            calculateIncome(limitOrderEntry, 200);
+            calculateIncome(limitOrderEntry, targerSize);
         }
 
     }
@@ -77,7 +78,7 @@ public class LimitOrderBook implements IOrderBook {
 
     @Override
     public void modifyOrder(LimitOrderEntry newOrderEntry) {
-        //fail fast checks
+        //fail fast
         isValidRemoveOrder(newOrderEntry);
 
         LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
@@ -87,22 +88,18 @@ public class LimitOrderBook implements IOrderBook {
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
-                //bidList.remove(existingEntry);
-                //bidList.add(existingEntry);
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateExpense(newOrderEntry, 200);
+            calculateExpense(newOrderEntry, targerSize);
         } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 askList.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
-                //askList.remove(existingEntry);
-                //askList.add(existingEntry);
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateIncome(newOrderEntry, 200);
+            calculateIncome(newOrderEntry, targerSize);
         }
     }
 
@@ -148,21 +145,21 @@ public class LimitOrderBook implements IOrderBook {
 
         if (buyExpenseTotal != newExpenseTotal && (targetSize - tempTargetSize) == targetSize) {
             buyExpenseTotal = newExpenseTotal;
-            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "S", newExpenseTotal == 0 ? "NA" : String.valueOf(newExpenseTotal)));
+            System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "S", newExpenseTotal == 0 ? "NA" : String.valueOf(newExpenseTotal)));
         }
         return newExpenseTotal;
     }
 
     //calculate the income
     public double calculateIncome(LimitOrderEntry limitOrderEntry, int targetSize) {
-        double newIncomeTotal = 0;
+        double currentIncomeTotal = 0;
         int tempTargetSize = targetSize;
         for (LimitOrderEntry orderEntry : askList) {
             if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
-                newIncomeTotal += (tempTargetSize * orderEntry.getPrice());
+                currentIncomeTotal += (tempTargetSize * orderEntry.getPrice());
                 tempTargetSize -= tempTargetSize;
             } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
-                newIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
+                currentIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
                 tempTargetSize -= orderEntry.getSize();
             } else {
                 break;
@@ -172,11 +169,11 @@ public class LimitOrderBook implements IOrderBook {
             //System.out.println(String.format("Expense: %f", newIncome));
         }
 
-        if (sellIncomeTotal != newIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
-            buyExpenseTotal = newIncomeTotal;
-            System.out.println(String.format("%d %s %s", limitOrderEntry.getTimestamp(), "B", newIncomeTotal == 0 ? "NA" : String.valueOf(newIncomeTotal)));
+        if (sellIncomeTotal != currentIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
+            buyExpenseTotal = currentIncomeTotal;
+            System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "B", currentIncomeTotal == 0 ? "NA" : String.valueOf(currentIncomeTotal)));
         }
-        return newIncomeTotal;
+        return currentIncomeTotal;
     }
 
     //utility methods are provided for better encapsulation
@@ -201,10 +198,5 @@ public class LimitOrderBook implements IOrderBook {
     public int getTotalAskSize() {
         return askList.size();
     }
-
-    public String getInstrument() {
-        return instrument;
-    }
-
 
 }

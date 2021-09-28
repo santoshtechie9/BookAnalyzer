@@ -5,13 +5,47 @@ import com.eventus.bookanalyser.datastructure.OrderTypes;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
 
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Scanner;
 
 public class BookAnalyzer {
 
     private double currentIncome;
     private double currentExpense;
-    private final LimitOrderBook orderBook = new LimitOrderBook("ZING");
+    private final LimitOrderBook orderBook;
+
+    public static void main(String[] args) {
+        // Using Scanner for Getting Input from User
+        Scanner in = new Scanner(System.in);
+        String dataLog = "Start";
+
+        //fail fast
+        isValidArgument(args);
+        Integer targetSize = Integer.valueOf(args[0]);
+        BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", targetSize);
+
+        while (!dataLog.equalsIgnoreCase("exit!")) {
+            System.out.print("Input: ");
+            dataLog = in.nextLine();
+            if (dataLog.isEmpty() || dataLog.isBlank()) {
+                throw new InputMismatchException();
+            }
+            bookAnalyzer.run(dataLog);
+            System.out.println("**********************************");
+        }
+    }
+
+    public BookAnalyzer(String instrument, Integer targetSize) {
+        this.orderBook = new LimitOrderBook("ZING", targetSize);
+    }
+
+    private static void isValidArgument(String[] args) {
+        if (args.length != 1)
+            throw new IllegalArgumentException("Invalid argument; Expected syntax: BookAnalyzer <target-size>");
+        if (!(Integer.valueOf(args[0]) instanceof Integer))
+            throw new IllegalArgumentException("target-size should be an integer");
+    }
 
     public void run(String dataLog) {
         LimitOrderEntry limitOrderEntry = null;
