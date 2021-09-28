@@ -15,19 +15,25 @@ public class LimitOrderBook implements IOrderBook {
 
     // instrument id to which the order book belongs to.
     private final String instrument;
-    private final int targerSize;
-    private final Set<LimitOrderEntry> bidList;
-    private final Set<LimitOrderEntry> askList;
+    private final int targetSize;
+    private final Set<LimitOrderEntry> bids;
+    private final Set<LimitOrderEntry> asks;
     // map for bookkeeping of order entries
     private final Map<String, LimitOrderEntry> orderBookMap;
-    private Double buyExpenseTotal = 0.0;
-    private Double sellIncomeTotal = 0.0;
+    //private Double prevBuyExpenseTotal = 0.0;
+    private double prevBuyExpenseTotal = Double.NaN;
+    //private Double prevSellIncomeTotal = 0.0;
+    private Double prevSellIncomeTotal = Double.NaN;
+    //private Integer prevBuySizeTotal = 0;
+    private int prevBuySizeTotal = -1;
+    //private Integer previSellSizeTotal = 0;
+    private int previSellSizeTotal = -1;
 
     public LimitOrderBook(String instrument, int targetSize) {
         this.instrument = instrument;
-        this.targerSize = targetSize;
-        this.bidList = new TreeSet<>(new BidComparator());
-        this.askList = new TreeSet<>(new AskComparator());
+        this.targetSize = targetSize;
+        this.bids = new TreeSet<>(new BidComparator());
+        this.asks = new TreeSet<>(new AskComparator());
         this.orderBookMap = new HashMap<>();
     }
 
@@ -42,11 +48,11 @@ public class LimitOrderBook implements IOrderBook {
         isUniqueOrder(limitOrderEntry);
         isValidAddOrder(limitOrderEntry);
         if (isBidOrder(limitOrderEntry)) {
-            addOrderToList(limitOrderEntry, bidList);
-            calculateExpense(limitOrderEntry, targerSize);
+            addOrderToList(limitOrderEntry, bids);
+            calculateExpense(limitOrderEntry, targetSize);
         } else if (isAskOrder(limitOrderEntry)) {
-            addOrderToList(limitOrderEntry, askList);
-            calculateIncome(limitOrderEntry, targerSize);
+            addOrderToList(limitOrderEntry, asks);
+            calculateIncome(limitOrderEntry, targetSize);
         }
 
     }
@@ -82,24 +88,27 @@ public class LimitOrderBook implements IOrderBook {
         isValidRemoveOrder(newOrderEntry);
 
         LimitOrderEntry existingEntry = orderBookMap.get(newOrderEntry.getOrderId());
+        //28800758 A d B 44.18 157
+        //28800796 R d 157
+
         if (isExistingOrder(newOrderEntry) && isBuyOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
-                bidList.remove(existingEntry);
+                bids.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateExpense(newOrderEntry, targerSize);
+            calculateExpense(newOrderEntry, targetSize);
         } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
-                askList.remove(existingEntry);
+                asks.remove(existingEntry);
                 orderBookMap.remove(existingEntry.getOrderId());
             } else {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateIncome(newOrderEntry, targerSize);
+            calculateIncome(newOrderEntry, targetSize);
         }
     }
 
@@ -126,8 +135,8 @@ public class LimitOrderBook implements IOrderBook {
     public Double calculateExpense(LimitOrderEntry limitOrderEntry, int targetSize) {
         Double newExpenseTotal = 0.0;
         int tempTargetSize = targetSize;
-        if (!bidList.isEmpty()) {
-            for (LimitOrderEntry orderEntry : bidList) {
+        if (!bids.isEmpty()) {
+            for (LimitOrderEntry orderEntry : bids) {
                 if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
                     newExpenseTotal += (tempTargetSize * orderEntry.getPrice());
                     tempTargetSize -= tempTargetSize;
@@ -143,9 +152,14 @@ public class LimitOrderBook implements IOrderBook {
             }
         }
 
-        if (buyExpenseTotal != newExpenseTotal && (targetSize - tempTargetSize) == targetSize) {
-            buyExpenseTotal = newExpenseTotal;
+        if (prevBuyExpenseTotal != newExpenseTotal && (targetSize - tempTargetSize) == targetSize) {
+            prevBuyExpenseTotal = newExpenseTotal;
+            prevBuySizeTotal = targetSize;
             System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "S", newExpenseTotal == 0 ? "NA" : String.valueOf(newExpenseTotal)));
+        } else if (prevBuyExpenseTotal != newExpenseTotal && prevBuySizeTotal > tempTargetSize) {
+            prevBuyExpenseTotal = Double.NaN;
+            prevBuySizeTotal = -1;
+            System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "S", "NA"));
         }
         return newExpenseTotal;
     }
@@ -154,13 +168,13 @@ public class LimitOrderBook implements IOrderBook {
     public double calculateIncome(LimitOrderEntry limitOrderEntry, int targetSize) {
         double currentIncomeTotal = 0;
         int tempTargetSize = targetSize;
-        for (LimitOrderEntry orderEntry : askList) {
+        for (LimitOrderEntry orderEntry : asks) {
             if (tempTargetSize > 0 && tempTargetSize <= orderEntry.getSize()) {
                 currentIncomeTotal += (tempTargetSize * orderEntry.getPrice());
                 tempTargetSize -= tempTargetSize;
             } else if (tempTargetSize > 0 && tempTargetSize > orderEntry.getSize()) {
                 currentIncomeTotal += (orderEntry.getSize() * orderEntry.getPrice());
-                tempTargetSize -= orderEntry.getSize();
+                tempTargetSize = tempTargetSize - orderEntry.getSize();
             } else {
                 break;
             }
@@ -169,9 +183,14 @@ public class LimitOrderBook implements IOrderBook {
             //System.out.println(String.format("Expense: %f", newIncome));
         }
 
-        if (sellIncomeTotal != currentIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
-            buyExpenseTotal = currentIncomeTotal;
+        if (prevSellIncomeTotal != currentIncomeTotal && (targetSize - tempTargetSize) == targetSize) {
+            prevSellIncomeTotal = currentIncomeTotal;
+            previSellSizeTotal = targetSize;
             System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "B", currentIncomeTotal == 0 ? "NA" : String.valueOf(currentIncomeTotal)));
+        } else if (prevSellIncomeTotal != currentIncomeTotal && previSellSizeTotal > tempTargetSize) {
+            prevSellIncomeTotal = Double.NaN;
+            previSellSizeTotal = -1;
+            System.out.println(String.format("Output: %d %s %s", limitOrderEntry.getTimestamp(), "B", "NA"));
         }
         return currentIncomeTotal;
     }
@@ -179,12 +198,12 @@ public class LimitOrderBook implements IOrderBook {
     //utility methods are provided for better encapsulation
     public void printBidList() {
         System.out.println("Printing Bids");
-        bidList.forEach(x -> System.out.println(x.toString()));
+        bids.forEach(x -> System.out.println(x.toString()));
     }
 
     public void printAskList() {
         System.out.println("Printing Asks:");
-        askList.forEach(x -> System.out.println(x.toString()));
+        asks.forEach(x -> System.out.println(x.toString()));
     }
 
     public Map<String, LimitOrderEntry> getOrderBookMap() {
@@ -192,11 +211,11 @@ public class LimitOrderBook implements IOrderBook {
     }
 
     public int getTotalBidSize() {
-        return bidList.size();
+        return bids.size();
     }
 
     public int getTotalAskSize() {
-        return askList.size();
+        return asks.size();
     }
 
 }

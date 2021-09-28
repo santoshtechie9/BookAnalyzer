@@ -2,7 +2,7 @@ package com.eventus.bookanalyser.model;
 
 import java.util.Objects;
 
-//use builder patten or factory pattern
+//use factory pattern or builder pattern
 public class LimitOrderEntry {
 
     private final Long timestamp;

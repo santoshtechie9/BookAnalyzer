@@ -11,8 +11,8 @@ import java.util.Scanner;
 
 public class BookAnalyzer {
 
-    private double currentIncome;
-    private double currentExpense;
+    //private double currentIncome;
+    //private double currentExpense;
     private final LimitOrderBook orderBook;
 
     public static void main(String[] args) {
@@ -22,15 +22,13 @@ public class BookAnalyzer {
 
         //fail fast
         isValidArgument(args);
-        Integer targetSize = Integer.valueOf(args[0]);
-        BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", targetSize);
+        BookAnalyzer bookAnalyzer = new BookAnalyzer("ZING", Integer.valueOf(args[0]));
 
         while (!dataLog.equalsIgnoreCase("exit!")) {
             System.out.print("Input: ");
             dataLog = in.nextLine();
-            if (dataLog.isEmpty() || dataLog.isBlank()) {
+            if (dataLog.isEmpty() || dataLog.isBlank())
                 throw new InputMismatchException();
-            }
             bookAnalyzer.run(dataLog);
             System.out.println("**********************************");
         }
@@ -88,7 +86,6 @@ public class BookAnalyzer {
         long timestamp = Long.valueOf(dataLogArray.get(0));
         String orderType = dataLogArray.get(1);
         String orderId = dataLogArray.get(2);
-
 
         if (!(orderType.equalsIgnoreCase("A") || orderType.equalsIgnoreCase("R")))
             throw new IllegalArgumentException(String.format("Invalid orderType: %s", orderType));
