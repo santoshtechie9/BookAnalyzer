@@ -4,8 +4,8 @@ import com.eventus.bookanalyser.model.LimitOrderEntry;
 
 public interface IOrderBook {
 
-    public void addOrder(LimitOrderEntry limitOrderEntry);
+    void addOrder(LimitOrderEntry limitOrderEntry);
 
-    public void modifyOrder(LimitOrderEntry limitOrderEntry);
+    void modifyOrder(LimitOrderEntry limitOrderEntry);
 
 }
