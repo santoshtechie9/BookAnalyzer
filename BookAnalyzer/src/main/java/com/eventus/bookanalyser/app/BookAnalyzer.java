@@ -10,7 +10,6 @@ import java.util.*;
 public class BookAnalyzer implements Observer {
 
     private final LimitOrderBook orderBook;
-    private double prevExpense = 0.0;
 
     public static void main(String[] args) {
         // Using Scanner for Getting Input from User
