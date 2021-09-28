@@ -3,7 +3,7 @@ package com.eventus.bookanalyser.datastructure;
 import com.eventus.bookanalyser.comparator.AskComparator;
 import com.eventus.bookanalyser.comparator.BidComparator;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
-import com.eventus.bookanalyser.model.NotifyOrderBookEvent;
+import com.eventus.bookanalyser.model.OrderBookNotificationEvent;
 import com.sun.jdi.request.DuplicateRequestException;
 
 import java.security.InvalidParameterException;
@@ -46,10 +46,10 @@ public class LimitOrderBook extends Observable implements IOrderBook {
         isValidAddOrder(limitOrderEntry);
         if (isBidOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, bids);
-            calculateExpenseNew(limitOrderEntry, targetSize);
+            calculateUpdatedExpense(limitOrderEntry, targetSize);
         } else if (isAskOrder(limitOrderEntry)) {
             addOrderToList(limitOrderEntry, asks);
-            calculateIncomeNew(limitOrderEntry, targetSize);
+            calculateUpdatedIncome(limitOrderEntry, targetSize);
         }
     }
 
@@ -93,7 +93,7 @@ public class LimitOrderBook extends Observable implements IOrderBook {
                 existingEntry.setSize(existingEntry.getSize() - newOrderEntry.getSize());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateExpenseNew(newOrderEntry, targetSize);
+            calculateUpdatedExpense(newOrderEntry, targetSize);
         } else if (isExistingOrder(newOrderEntry) && isSellOrder(newOrderEntry)) {
             if ((existingEntry.getSize() - newOrderEntry.getSize()) <= 0) {
                 asks.remove(existingEntry);
@@ -103,7 +103,7 @@ public class LimitOrderBook extends Observable implements IOrderBook {
                 existingEntry.setTimestamp(newOrderEntry.getTimestamp());
                 orderBookMap.put(existingEntry.getOrderId(), existingEntry);
             }
-            calculateIncomeNew(newOrderEntry, targetSize);
+            calculateUpdatedIncome(newOrderEntry, targetSize);
         }
     }
 
@@ -126,7 +126,6 @@ public class LimitOrderBook extends Observable implements IOrderBook {
             throw new InvalidParameterException(String.format("Expected orderType : R ; received orderType is : %s", newOrderEntry.getOrderType()));
     }
 
-
     private int getTotalInstrumentCount(Set<LimitOrderEntry> set) {
         int tmpCounter = 0;
         if (!set.isEmpty()) {
@@ -140,81 +139,80 @@ public class LimitOrderBook extends Observable implements IOrderBook {
             return tmpCounter;
     }
 
-    public double calculateExpenseNew(LimitOrderEntry currOrderEntry, int targetSize) {
+    public double calculateUpdatedExpense(LimitOrderEntry currOrderEntry, int targetSize) {
         int bidInstrCount = getTotalInstrumentCount(bids);
-        double tmpCurrExpense = 0.0;
-        int tmpTargetSize = 0;
+        double currExpense = 0.0;
+        int currBuySize = 0;
         if (bidInstrCount >= targetSize) {
             for (LimitOrderEntry bidEntry : bids) {
-                if ((targetSize - tmpTargetSize) >= bidEntry.getSize()) {
-                    tmpCurrExpense += (bidEntry.getSize() * bidEntry.getPrice());
-                    tmpTargetSize += bidEntry.getSize();
-                } else if ((targetSize - tmpTargetSize) < bidEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
-                    tmpCurrExpense += (targetSize - tmpTargetSize) * bidEntry.getPrice();
-                    tmpTargetSize += (targetSize - tmpTargetSize);
-                } else if ((targetSize - tmpTargetSize) == 0) {
+                if ((targetSize - currBuySize) >= bidEntry.getSize()) {
+                    currExpense += (bidEntry.getSize() * bidEntry.getPrice());
+                    currBuySize += bidEntry.getSize();
+                } else if ((targetSize - currBuySize) < bidEntry.getSize() && (targetSize - currBuySize) > 0) {
+                    currExpense += (targetSize - currBuySize) * bidEntry.getPrice();
+                    currBuySize += (targetSize - currBuySize);
+                } else if ((targetSize - currBuySize) == 0) {
                     break;
                 }
             }
         }
-        //print output
-        tmpCurrExpense = Double.valueOf(df_obj.format(tmpCurrExpense));
-        if (bidInstrCount >= targetSize && prevExpense != tmpCurrExpense) {
-            prevExpense = tmpCurrExpense;
+        currExpense = Double.valueOf(df_obj.format(currExpense));
+        if (bidInstrCount >= targetSize && prevExpense != currExpense) {
+            prevExpense = currExpense;
             prevBuySize = targetSize;
             //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "S", tmpCurrExpense));
-            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), String.format("%.2f", tmpCurrExpense));
-        } else if (bidInstrCount <= targetSize && prevExpense != tmpCurrExpense && prevBuySize > tmpTargetSize) {
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), String.format("%.2f", currExpense));
+        } else if (bidInstrCount <= targetSize && prevExpense != currExpense && prevBuySize > currBuySize) {
             prevExpense = Double.NaN;
             prevBuySize = -1;
             //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "S", "NA"));
             updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.S.name(), "NA");
         }
-        return tmpCurrExpense;
+        return currExpense;
+    }
+
+    public double calculateUpdatedIncome(LimitOrderEntry currOrderEntry, int targetSize) {
+        int askInstrumentsSize = getTotalInstrumentCount(asks);
+        double currIncome = 0.0;
+        int currSellSize = 0;
+        if (askInstrumentsSize >= targetSize) {
+            for (LimitOrderEntry askEntry : asks) {
+                if ((targetSize - currSellSize) >= askEntry.getSize()) {
+                    currIncome += (askEntry.getSize() * askEntry.getPrice());
+                    currSellSize += askEntry.getSize();
+                } else if ((targetSize - currSellSize) < askEntry.getSize() && (targetSize - currSellSize) > 0) {
+                    currIncome += (targetSize - currSellSize) * askEntry.getPrice();
+                    currSellSize += (targetSize - currSellSize);
+                } else if ((targetSize - currSellSize) == 0) {
+                    break;
+                }
+            }
+        }
+        //print output
+        currIncome = Double.valueOf(df_obj.format(currIncome));
+        if (askInstrumentsSize >= targetSize && prevIncome != currIncome) {
+            prevIncome = currIncome;
+            prevSellSize = targetSize;
+            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), String.format("%.2f", currIncome));
+        } else if (askInstrumentsSize <= targetSize && prevIncome != currIncome && prevSellSize > currSellSize) {
+            prevIncome = Double.NaN;
+            prevSellSize = -1;
+            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
+            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), "NA");
+        }
+        return currIncome;
     }
 
     private void updateEventStatus(Long timestamp, String side, String total) {
-        NotifyOrderBookEvent notifyEvent = new NotifyOrderBookEvent();
+        OrderBookNotificationEvent notifyEvent = new OrderBookNotificationEvent();
         notifyEvent.setTimestamp(timestamp);
         notifyEvent.setSide(side);
         notifyEvent.setTotal(total);
         setChanged();
         notifyObservers(notifyEvent);
     }
-
-    public double calculateIncomeNew(LimitOrderEntry currOrderEntry, int targetSize) {
-        int askInstrumentsSize = getTotalInstrumentCount(asks);
-        double tmpCurrIncome = 0.0;
-        int tmpTargetSize = 0;
-        if (askInstrumentsSize >= targetSize) {
-            for (LimitOrderEntry askEntry : asks) {
-                if ((targetSize - tmpTargetSize) >= askEntry.getSize()) {
-                    tmpCurrIncome += (askEntry.getSize() * askEntry.getPrice());
-                    tmpTargetSize += askEntry.getSize();
-                } else if ((targetSize - tmpTargetSize) < askEntry.getSize() && (targetSize - tmpTargetSize) > 0) {
-                    tmpCurrIncome += (targetSize - tmpTargetSize) * askEntry.getPrice();
-                    tmpTargetSize += (targetSize - tmpTargetSize);
-                } else if ((targetSize - tmpTargetSize) == 0) {
-                    break;
-                }
-            }
-        }
-        //print output
-        tmpCurrIncome = Double.valueOf(df_obj.format(tmpCurrIncome));
-        if (askInstrumentsSize >= targetSize && prevIncome != tmpCurrIncome) {
-            prevIncome = tmpCurrIncome;
-            prevSellSize = targetSize;
-            //System.out.println(String.format("%d %s %.2f", currOrderEntry.getTimestamp(), "B", tmpCurrIncome));
-            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), String.format("%.2f", tmpCurrIncome));
-        } else if (askInstrumentsSize <= targetSize && prevIncome != tmpCurrIncome && prevSellSize > tmpTargetSize) {
-            prevIncome = Double.NaN;
-            prevSellSize = -1;
-            //System.out.println(String.format("%d %s %s", currOrderEntry.getTimestamp(), "B", "NA"));
-            updateEventStatus(currOrderEntry.getTimestamp(), OrderTypes.B.name(), "NA");
-        }
-        return tmpCurrIncome;
-    }
-
+    
     //utility methods are provided for better encapsulation
     public void printBidList() {
         System.out.println("Printing Bids");

@@ -3,7 +3,7 @@ package com.eventus.bookanalyser.app;
 import com.eventus.bookanalyser.datastructure.LimitOrderBook;
 import com.eventus.bookanalyser.datastructure.OrderTypes;
 import com.eventus.bookanalyser.model.LimitOrderEntry;
-import com.eventus.bookanalyser.model.NotifyOrderBookEvent;
+import com.eventus.bookanalyser.model.OrderBookNotificationEvent;
 
 import java.util.*;
 
@@ -152,11 +152,8 @@ public class BookAnalyzer implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        NotifyOrderBookEvent notifyEvent = (NotifyOrderBookEvent) arg;
+        OrderBookNotificationEvent notifyEvent = (OrderBookNotificationEvent) arg;
         System.out.println(String.format("%d %s %s", notifyEvent.getTimestamp(), notifyEvent.getSide(), notifyEvent.getTotal()));
     }
 
-    public void setPrevExpense(double prevExpense) {
-        this.prevExpense = prevExpense;
-    }
 }

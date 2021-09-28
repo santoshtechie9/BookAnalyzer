@@ -1,6 +1,6 @@
 package com.eventus.bookanalyser.model;
 
-public class NotifyOrderBookEvent {
+public class OrderBookNotificationEvent {
 
     private Long timestamp;
     private String side;
